@@ -63,7 +63,7 @@ class BottomNavBar extends StatelessWidget {
                           child: index != selectedIndex
                               ? Icon(
                                   icons[index],
-                                  color: Colors.black87,
+                                  color: ChunkyColors.onSurfaceVariant,
                                   size: 28.0,
                                 )
                               : const SizedBox.shrink(),
@@ -120,7 +120,7 @@ class _NavBarPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white
+      ..color = ChunkyColors.surfaceContainerHigh
       ..style = PaintingStyle.fill;
 
     final path = Path();
