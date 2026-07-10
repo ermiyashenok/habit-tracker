@@ -7,8 +7,9 @@ import '../models/activity.dart';
 import '../models/daily_log.dart';
 import '../models/friend.dart';
 import '../models/achievement.dart';
+import '../services/notification_service.dart';
 
-enum CurrentTab { today, planner, stats, friends, badges }
+enum CurrentTab { today, planner, stats, social, profile }
 
 class AppState extends ChangeNotifier {
   // Navigation
@@ -42,6 +43,7 @@ class AppState extends ChangeNotifier {
   List<Friend> _friends = [];
 
   List<Activity> get activities => _activities.where((a) => !a.isArchived).toList();
+  List<Activity> get activeActivities => _activities.where((a) => !a.isArchived && a.isActive).toList();
   List<DailyLog> get dailyLogs => _dailyLogs;
   List<Achievement> get achievements => _achievements;
   List<Friend> get friends => _friends;
@@ -55,6 +57,9 @@ class AppState extends ChangeNotifier {
   int get userBestStreak => _userBestStreak;
   int _level = 12;
   int get level => _level;
+  int _totalEarnedFreezes = 2; // Starts with 2 freezes
+  int _userFreezesRemaining = 2;
+  int get userFreezesRemaining => _userFreezesRemaining;
 
   AppState() {
     _loadInitialData();
@@ -179,10 +184,10 @@ class AppState extends ChangeNotifier {
     saveAllData();
   }
 
-  // CRUD Operations
   void addActivity(Activity activity) {
     _activities.add(activity);
     saveAllData();
+    _scheduleNotificationForActivity(activity);
     notifyListeners();
   }
 
@@ -191,6 +196,7 @@ class AppState extends ChangeNotifier {
     if (index != -1) {
       _activities[index] = activity;
       saveAllData();
+      _scheduleNotificationForActivity(activity);
       notifyListeners();
     }
   }
@@ -200,7 +206,48 @@ class AppState extends ChangeNotifier {
     if (index != -1) {
       _activities[index] = _activities[index].copyWith(isArchived: true);
       saveAllData();
+      NotificationService().cancelReminder(id.hashCode);
       notifyListeners();
+    }
+  }
+
+  void toggleActivityPause(String id) {
+    final index = _activities.indexWhere((a) => a.id == id);
+    if (index != -1) {
+      final act = _activities[index];
+      final updated = act.copyWith(isActive: !act.isActive);
+      _activities[index] = updated;
+      saveAllData();
+      if (updated.isActive) {
+        _scheduleNotificationForActivity(updated);
+      } else {
+        NotificationService().cancelReminder(id.hashCode);
+      }
+      notifyListeners();
+    }
+  }
+
+  void _scheduleNotificationForActivity(Activity activity) {
+    if (!activity.isActive || activity.isArchived || activity.time == null || activity.time == 'Anytime') {
+      NotificationService().cancelReminder(activity.id.hashCode);
+      return;
+    }
+    
+    try {
+      final parts = activity.time!.split(':');
+      if (parts.length == 2) {
+        final hour = int.parse(parts[0]);
+        final min = int.parse(parts[1]);
+        NotificationService().scheduleDailyReminder(
+          activity.id.hashCode,
+          'Time for your quest!',
+          'Don\'t forget to complete: ${activity.name}',
+          hour,
+          min,
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error scheduling notification: $e');
     }
   }
 
@@ -248,8 +295,15 @@ class AppState extends ChangeNotifier {
 
   void _recalculateLevel() {
     // Basic level calculation: level 1 = 0 XP, each level is 200 XP
-    _level = (_userXp / 200).floor();
-    if (_level < 1) _level = 1;
+    int newLevel = (_userXp / 200).floor();
+    if (newLevel < 1) newLevel = 1;
+    
+    if (newLevel > _level) {
+      // Reward 1 streak freeze per level up
+      _totalEarnedFreezes += (newLevel - _level);
+    }
+    
+    _level = newLevel;
   }
 
   void _recalculateStreaks() {
@@ -271,27 +325,34 @@ class AppState extends ChangeNotifier {
     }
 
     int currentStreak = 0;
+    int freezesUsed = 0;
+    final int maxFreezes = _totalEarnedFreezes; // Freezes user has earned
+    
     final today = DateTime.now();
-    final todayStr = _getTodayString();
-    final yesterdayStr = _formatDate(today.subtract(const Duration(days: 1)));
+    DateTime checkDate = today;
 
-    // If today is in completedDates, streak starts today. If yesterday is, it starts yesterday.
-    // Otherwise streak is 0.
-    if (completedDates.contains(todayStr) || completedDates.contains(yesterdayStr)) {
-      DateTime checkDate = completedDates.contains(todayStr) ? today : today.subtract(const Duration(days: 1));
-      
-      while (true) {
-        final dateStr = _formatDate(checkDate);
-        if (completedDates.contains(dateStr)) {
-          currentStreak++;
-          checkDate = checkDate.subtract(const Duration(days: 1));
+    while (true) {
+      final dateStr = _formatDate(checkDate);
+      if (completedDates.contains(dateStr)) {
+        currentStreak++;
+      } else {
+        // If it's today and we haven't done it yet, it's not a broken streak yet.
+        if (checkDate.year == today.year && checkDate.month == today.month && checkDate.day == today.day) {
+          // Do nothing, continue to yesterday
         } else {
-          break;
+          if (freezesUsed < maxFreezes) {
+            freezesUsed++;
+            currentStreak++; // Grace day keeps the streak alive
+          } else {
+            break; // No freezes left, streak is broken
+          }
         }
       }
+      checkDate = checkDate.subtract(const Duration(days: 1));
     }
 
     _userStreak = currentStreak;
+    _userFreezesRemaining = maxFreezes - freezesUsed;
     if (_userStreak > _userBestStreak) {
       _userBestStreak = _userStreak;
     }
