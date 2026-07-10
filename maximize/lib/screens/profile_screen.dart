@@ -6,6 +6,7 @@ import '../widgets/chunky_button.dart';
 import '../providers/app_state.dart';
 import 'friends_screen.dart';
 import 'badges_screen.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final AppState state;
@@ -42,7 +43,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.local_fire_department,
                       color: ChunkyColors.primary,
@@ -50,7 +51,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 20.0),
+                SizedBox(width: 20.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,10 +64,10 @@ class ProfileScreen extends StatelessWidget {
                           color: ChunkyColors.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 4.0),
+                      SizedBox(height: 4.0),
                       Text(
                         'Level ${state.level} Habit Master',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'BeVietnamPro',
                           fontWeight: FontWeight.bold,
                           fontSize: 14.0,
@@ -79,7 +80,7 @@ class ProfileScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24.0),
+          SizedBox(height: 24.0),
 
 
           _buildSettingsSection('SETTINGS'),
@@ -92,10 +93,12 @@ class ProfileScreen extends StatelessWidget {
           ),
           _buildMenuCard(
             context,
-            title: 'Dark Mode Theme',
-            icon: Icons.dark_mode,
+            title: state.isLightMode ? 'Dark Mode Theme' : 'Light Mode Theme',
+            icon: state.isLightMode ? Icons.dark_mode : Icons.light_mode,
             color: ChunkyColors.onSurface,
-            onTap: () {},
+            onTap: () {
+              state.toggleTheme();
+            },
           ),
           _buildMenuCard(
             context,
@@ -105,15 +108,17 @@ class ProfileScreen extends StatelessWidget {
             onTap: () {},
           ),
 
-          const SizedBox(height: 32.0),
+          SizedBox(height: 32.0),
           ChunkyButton(
             backgroundColor: ChunkyColors.surfaceContainerHigh,
             borderColor: ChunkyColors.errorRed,
             shadowColor: ChunkyColors.errorRed,
             onTap: () {
-              // Usually logs out the user
+              Navigator.of(context, rootNavigator: true).pushReplacement(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
             },
-            child: const Center(
+            child: Center(
               child: Text(
                 'LOG OUT',
                 style: TextStyle(
@@ -125,7 +130,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 32.0),
+          SizedBox(height: 32.0),
         ],
       ),
     );
@@ -136,7 +141,7 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4.0, bottom: 8.0, top: 8.0),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'BeVietnamPro',
           fontWeight: FontWeight.bold,
           fontSize: 12.0,
@@ -169,7 +174,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Icon(icon, color: color, size: 24.0),
             ),
-            const SizedBox(width: 16.0),
+            SizedBox(width: 16.0),
             Expanded(
               child: Text(
                 title,
@@ -180,10 +185,13 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right, color: ChunkyColors.outline, size: 28.0),
+            Icon(Icons.chevron_right, color: ChunkyColors.outline, size: 28.0),
           ],
         ),
       ),
     );
   }
 }
+
+
+
