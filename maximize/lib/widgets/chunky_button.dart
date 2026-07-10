@@ -3,7 +3,7 @@ import 'chunky_colors.dart';
 
 class ChunkyButton extends StatefulWidget {
   final Widget child;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final Color borderColor;
   final Color shadowColor;
   final double borderRadius;
@@ -14,7 +14,7 @@ class ChunkyButton extends StatefulWidget {
   const ChunkyButton({
     super.key,
     required this.child,
-    this.backgroundColor = ChunkyColors.primary,
+    this.backgroundColor,
     this.borderColor = Colors.transparent,
     this.shadowColor = Colors.transparent,
     this.borderRadius = 16.0,
@@ -41,11 +41,11 @@ class _ChunkyButtonState extends State<ChunkyButton> {
       onTapCancel: () => setState(() => _isPressed = false),
       onTap: widget.onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 50),
+        duration: Duration(milliseconds: 50),
         height: widget.height,
         margin: EdgeInsets.only(top: topOffset, bottom: widget.shadowHeight - shadowHeight),
         decoration: BoxDecoration(
-          color: widget.backgroundColor,
+          color: widget.backgroundColor ?? ChunkyColors.primary,
           borderRadius: BorderRadius.circular(widget.borderRadius),
           border: Border.all(
             color: widget.borderColor,
@@ -67,3 +67,4 @@ class _ChunkyButtonState extends State<ChunkyButton> {
     );
   }
 }
+

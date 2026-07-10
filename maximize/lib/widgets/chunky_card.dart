@@ -3,7 +3,7 @@ import 'chunky_colors.dart';
 
 class ChunkyCard extends StatefulWidget {
   final Widget child;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final Color borderColor;
   final Color shadowColor;
   final double borderWidth;
@@ -16,7 +16,7 @@ class ChunkyCard extends StatefulWidget {
   const ChunkyCard({
     super.key,
     required this.child,
-    this.backgroundColor = ChunkyColors.surfaceContainerHigh,
+    this.backgroundColor,
     this.borderColor = Colors.transparent,
     this.shadowColor = Colors.transparent,
     this.borderWidth = 1.0,
@@ -45,7 +45,7 @@ class _ChunkyCardState extends State<ChunkyCard> {
       padding: widget.padding,
       alignment: widget.alignment,
       decoration: BoxDecoration(
-        color: widget.backgroundColor,
+        color: widget.backgroundColor ?? ChunkyColors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(widget.borderRadius),
         border: Border.all(
           color: widget.borderColor,
