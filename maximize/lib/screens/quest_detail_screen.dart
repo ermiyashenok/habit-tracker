@@ -300,13 +300,13 @@ class QuestDetailScreen extends StatelessWidget {
               backgroundColor: ChunkyColors.errorRed,
               shadowColor: ChunkyColors.errorRed,
               onTap: () {
-                // Soft Delete / Archive
+                // Delete Activity
                 state.deleteActivity(activity.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: ChunkyColors.errorRed,
                     content: Text(
-                      '"${activity.name}" archived successfully.',
+                      '"${activity.name}" deleted successfully.',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -316,10 +316,10 @@ class QuestDetailScreen extends StatelessWidget {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.archive, color: ChunkyColors.onSurface),
+                  Icon(Icons.delete, color: ChunkyColors.onSurface),
                   SizedBox(width: 8.0),
                   Text(
-                    'ARCHIVE QUEST',
+                    'DELETE QUEST',
                     style: TextStyle(
                       fontFamily: 'BeVietnamPro',
                       fontWeight: FontWeight.bold,
