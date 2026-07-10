@@ -26,6 +26,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
   final _notesController = TextEditingController();
 
   String _selectedCategory = 'HEALTH';
+  final List<String> _customCategories = [];
   TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 0);
   int _xpReward = 150;
 
@@ -60,6 +61,46 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
         _selectedTime = picked;
       });
     }
+  }
+
+  void _addCustomCategory() {
+    final TextEditingController catController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: ChunkyColors.surfaceContainerHigh,
+        title: const Text('New Category', style: TextStyle(color: ChunkyColors.onSurface)),
+        content: TextField(
+          controller: catController,
+          autofocus: true,
+          style: const TextStyle(color: ChunkyColors.onSurface),
+          decoration: const InputDecoration(
+            hintText: 'e.g. STUDY, FITNESS...',
+            hintStyle: TextStyle(color: ChunkyColors.outline),
+          ),
+          textCapitalization: TextCapitalization.characters,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: ChunkyColors.onSurfaceVariant)),
+          ),
+          TextButton(
+            onPressed: () {
+              final val = catController.text.trim().toUpperCase();
+              if (val.isNotEmpty) {
+                setState(() {
+                  _customCategories.add(val);
+                  _selectedCategory = val;
+                });
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Add', style: TextStyle(color: ChunkyColors.primary, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _saveQuest() {
@@ -172,10 +213,11 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.bold,
                     fontSize: 18.0,
+                    color: ChunkyColors.onSurface,
                   ),
                   decoration: const InputDecoration(
                     hintText: 'Ex: Slay the Dragon Gym',
-                    hintStyle: TextStyle(color: ChunkyColors.outlineVariant),
+                    hintStyle: TextStyle(color: ChunkyColors.outline),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
                   ),
@@ -204,6 +246,36 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                   _buildCategoryChip('WORK', Icons.work, ChunkyColors.primary),
                   _buildCategoryChip('SOCIAL', Icons.group, ChunkyColors.onSurface),
                   _buildCategoryChip('MIND', Icons.auto_awesome, ChunkyColors.primary),
+                  ..._customCategories.map((c) => _buildCategoryChip(c, Icons.label, ChunkyColors.secondary)),
+                  
+                  // Add custom category button
+                  GestureDetector(
+                    onTap: _addCustomCategory,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                      decoration: BoxDecoration(
+                        color: ChunkyColors.surfaceCard,
+                        borderRadius: BorderRadius.circular(24.0),
+                        border: Border.all(color: ChunkyColors.outline),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add, color: ChunkyColors.onSurfaceVariant, size: 18.0),
+                          SizedBox(width: 8.0),
+                          Text(
+                            'ADD',
+                            style: TextStyle(
+                              fontFamily: 'BeVietnamPro',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.0,
+                              color: ChunkyColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24.0),
@@ -241,6 +313,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                                   fontFamily: 'BeVietnamPro',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15.0,
+                                  color: ChunkyColors.onSurface,
                                 ),
                               ),
                             ],
@@ -285,6 +358,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 15.0,
+                                  color: ChunkyColors.onSurface,
                                 ),
                               ),
                             ],
@@ -315,10 +389,14 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                 child: TextField(
                   controller: _notesController,
                   maxLines: 3,
-                  style: const TextStyle(fontFamily: 'BeVietnamPro', fontSize: 14.0),
+                  style: const TextStyle(
+                    fontFamily: 'BeVietnamPro', 
+                    fontSize: 14.0,
+                    color: ChunkyColors.onSurface,
+                  ),
                   decoration: const InputDecoration(
                     hintText: 'Add some tactical advice for your future self...',
-                    hintStyle: TextStyle(color: ChunkyColors.outlineVariant),
+                    hintStyle: TextStyle(color: ChunkyColors.outline),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(16.0),
                   ),
