@@ -8,6 +8,7 @@ import '../models/daily_log.dart';
 import '../models/friend.dart';
 import '../models/achievement.dart';
 import '../services/notification_service.dart';
+import '../widgets/chunky_colors.dart';
 
 enum CurrentTab { today, planner, stats, social, profile }
 
@@ -60,6 +61,14 @@ class AppState extends ChangeNotifier {
   int _totalEarnedFreezes = 2; // Starts with 2 freezes
   int _userFreezesRemaining = 2;
   int get userFreezesRemaining => _userFreezesRemaining;
+
+  // Theme
+  bool get isLightMode => ChunkyColors.isLightMode;
+
+  void toggleTheme() {
+    ChunkyColors.isLightMode = !ChunkyColors.isLightMode;
+    notifyListeners();
+  }
 
   AppState() {
     _loadInitialData();
