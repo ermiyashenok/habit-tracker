@@ -13,11 +13,11 @@ class ChunkyColors {
   static const Color surfaceContainerHighest = Color(0xFF1A2235); // Lighter blue-black
   static const Color surfaceCard = Color(0xFF111726);
   
-  static const Color outline = Color(0xFF333E54); // Blue-grey border
-  static const Color outlineVariant = Color(0xFF1A2235); // Subtle border
+  static const Color outline = Color(0xFF64748B); // Slate 500 (brighter for text labels)
+  static const Color outlineVariant = Color(0xFF333E54); // Subtle border
   
-  static const Color onSurface = Color(0xFFFFFFFF);
-  static const Color onSurfaceVariant = Color(0xFF8E96A8); // Cool grey text
+  static const Color onSurface = Color(0xFFF1F5F9); // Slate 100 (crisp, readable off-white)
+  static const Color onSurfaceVariant = Color(0xFF94A3B8); // Slate 400 (visible secondary text)
   
   // Adjusted secondary and tertiary to not clash with the dark professional look
   static const Color secondary = Color(0xFF3B82F6); // Professional Blue
