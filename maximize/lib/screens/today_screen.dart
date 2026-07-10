@@ -33,7 +33,7 @@ class _TodayScreenState extends State<TodayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final activities = widget.state.activities;
+    final activities = widget.state.activeActivities;
     final logs = widget.state.dailyLogs;
 
     final today = DateTime.now();
@@ -138,9 +138,7 @@ class _TodayScreenState extends State<TodayScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStatCol('Nov 25, 2025', 'Streak started'), // Placeholder date
-              Container(width: 1, height: 40, color: ChunkyColors.outlineVariant),
-              _buildStatCol('Top 50%', 'Rank'),
+              _buildStatCol('Nov 25, 2025', 'Streak started'),
               Container(width: 1, height: 40, color: ChunkyColors.outlineVariant),
               _buildStatCol('${max(streak, 12)}', 'Max streak'), // Dummy max streak
             ],
