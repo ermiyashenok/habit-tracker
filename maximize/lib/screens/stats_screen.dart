@@ -32,7 +32,7 @@ class StatsScreen extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'CURRENT STREAK',
                       style: TextStyle(
                         fontFamily: 'BeVietnamPro',
@@ -42,7 +42,7 @@ class StatsScreen extends StatelessWidget {
                         letterSpacing: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 8.0),
+                    SizedBox(height: 8.0),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
@@ -55,8 +55,8 @@ class StatsScreen extends StatelessWidget {
                             color: ChunkyColors.primary,
                           ),
                         ),
-                        const SizedBox(width: 8.0),
-                        const Text(
+                        SizedBox(width: 8.0),
+                        Text(
                           'DAYS',
                           style: TextStyle(
                             fontFamily: 'BeVietnamPro',
@@ -96,7 +96,7 @@ class StatsScreen extends StatelessWidget {
                     ),
                     child: Text(
                       'Level ${state.level} Warrior',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'BeVietnamPro',
                         fontWeight: FontWeight.bold,
                         fontSize: 12.0,
@@ -108,7 +108,7 @@ class StatsScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16.0),
 
           // Insights Grid
           Row(
@@ -119,7 +119,7 @@ class StatsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
                           Icon(Icons.verified, color: ChunkyColors.primary, size: 20.0),
                           SizedBox(width: 6.0),
@@ -133,7 +133,7 @@ class StatsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8.0),
+                      SizedBox(height: 8.0),
                       Text(
                         '128',
                         style: GoogleFonts.plusJakartaSans(
@@ -142,7 +142,7 @@ class StatsScreen extends StatelessWidget {
                           color: ChunkyColors.onSurface,
                         ),
                       ),
-                      const Text(
+                      Text(
                         '+12 this week',
                         style: TextStyle(
                           fontFamily: 'BeVietnamPro',
@@ -154,14 +154,14 @@ class StatsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 16.0),
+              SizedBox(width: 16.0),
               Expanded(
                 child: ChunkyCard(
                   borderColor: ChunkyColors.surfaceContainerHighest,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
                           Icon(Icons.workspace_premium, color: ChunkyColors.primary, size: 20.0),
                           SizedBox(width: 6.0),
@@ -175,7 +175,7 @@ class StatsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8.0),
+                      SizedBox(height: 8.0),
                       Text(
                         '${state.userBestStreak}',
                         style: GoogleFonts.plusJakartaSans(
@@ -184,7 +184,7 @@ class StatsScreen extends StatelessWidget {
                           color: ChunkyColors.onSurface,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Personal Record',
                         style: TextStyle(
                           fontFamily: 'BeVietnamPro',
@@ -198,7 +198,7 @@ class StatsScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16.0),
 
           // Freezes Card
           ChunkyCard(
@@ -212,14 +212,14 @@ class StatsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16.0),
                     border: Border.all(color: ChunkyColors.secondaryFixed, width: 2.0),
                   ),
-                  child: const Icon(Icons.ac_unit, color: ChunkyColors.secondaryFixed, size: 32.0),
+                  child: Icon(Icons.ac_unit, color: ChunkyColors.secondaryFixed, size: 32.0),
                 ),
-                const SizedBox(width: 16.0),
+                SizedBox(width: 16.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'STREAK FREEZES',
                         style: TextStyle(
                           fontFamily: 'BeVietnamPro',
@@ -236,7 +236,7 @@ class StatsScreen extends StatelessWidget {
                           color: ChunkyColors.onSurface,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Grace days protect your streak if you miss a day.',
                         style: TextStyle(
                           fontFamily: 'BeVietnamPro',
@@ -250,7 +250,7 @@ class StatsScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16.0),
 
           // Completion Chart Section
           ChunkyCard(
@@ -279,7 +279,7 @@ class StatsScreen extends StatelessWidget {
                           width: 2.0,
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'LAST 7 DAYS',
                         style: TextStyle(
                           fontFamily: 'BeVietnamPro',
@@ -291,9 +291,9 @@ class StatsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20.0),
-                const WeeklyProgressChart(),
-                const SizedBox(height: 16.0),
+                SizedBox(height: 20.0),
+                WeeklyProgressChart(),
+                SizedBox(height: 16.0),
                 Container(
                   padding: const EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
@@ -304,7 +304,7 @@ class StatsScreen extends StatelessWidget {
                       width: 2.0,
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.trending_up, color: ChunkyColors.primaryContainer, size: 36.0),
                       SizedBox(width: 12.0),
@@ -337,7 +337,7 @@ class StatsScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24.0),
+          SizedBox(height: 24.0),
 
           // Category Breakdown
           Text(
@@ -348,7 +348,7 @@ class StatsScreen extends StatelessWidget {
               color: ChunkyColors.onSurface,
             ),
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16.0),
 
           _buildCategoryBreakdownCard(
             title: 'Health',
@@ -356,28 +356,28 @@ class StatsScreen extends StatelessWidget {
             color: ChunkyColors.errorRed,
             icon: Icons.favorite,
           ),
-          const SizedBox(height: 12.0),
+          SizedBox(height: 12.0),
           _buildCategoryBreakdownCard(
             title: 'Work',
             percentage: 68,
             color: ChunkyColors.primary,
             icon: Icons.work,
           ),
-          const SizedBox(height: 12.0),
+          SizedBox(height: 12.0),
           _buildCategoryBreakdownCard(
             title: 'Social',
             percentage: 45,
             color: ChunkyColors.primary,
             icon: Icons.groups,
           ),
-          const SizedBox(height: 12.0),
+          SizedBox(height: 12.0),
           _buildCategoryBreakdownCard(
             title: 'Mind',
             percentage: 76,
             color: ChunkyColors.primaryContainer,
             icon: Icons.psychology,
           ),
-          const SizedBox(height: 24.0),
+          SizedBox(height: 24.0),
 
           // Achievement Preview Card
           Container(
@@ -396,7 +396,7 @@ class StatsScreen extends StatelessWidget {
                 Stack(
                   alignment: Alignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.military_tech,
                       color: ChunkyColors.primary,
                       size: 64.0,
@@ -406,16 +406,16 @@ class StatsScreen extends StatelessWidget {
                       right: 4,
                       child: Container(
                         padding: const EdgeInsets.all(2.0),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: ChunkyColors.onSurface,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.check_circle, color: ChunkyColors.primary, size: 16.0),
+                        child: Icon(Icons.check_circle, color: ChunkyColors.primary, size: 16.0),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12.0),
+                SizedBox(height: 12.0),
                 Text(
                   'Almost there!',
                   style: GoogleFonts.plusJakartaSans(
@@ -424,8 +424,8 @@ class StatsScreen extends StatelessWidget {
                     color: ChunkyColors.onSurface,
                   ),
                 ),
-                const SizedBox(height: 4.0),
-                const Text(
+                SizedBox(height: 4.0),
+                Text(
                   "Complete 3 more quests to unlock the 'Consistency King' badge.",
                   style: TextStyle(
                     fontFamily: 'BeVietnamPro',
@@ -434,12 +434,12 @@ class StatsScreen extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16.0),
+                SizedBox(height: 16.0),
                 ChunkyButton(
                   backgroundColor: ChunkyColors.primary,
                   shadowColor: Colors.purple.shade800,
                   onTap: onViewAchievementsPressed,
-                  child: const Text(
+                  child: Text(
                     'VIEW ALL ACHIEVEMENTS',
                     style: TextStyle(
                       fontFamily: 'BeVietnamPro',
@@ -452,7 +452,7 @@ class StatsScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 32.0),
+          SizedBox(height: 32.0),
         ],
       ),
     );
@@ -481,7 +481,7 @@ class StatsScreen extends StatelessWidget {
             ),
             child: Icon(icon, color: color),
           ),
-          const SizedBox(width: 16.0),
+          SizedBox(width: 16.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -499,7 +499,7 @@ class StatsScreen extends StatelessWidget {
                     ),
                     Text(
                       '$percentage%',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'BeVietnamPro',
                         fontWeight: FontWeight.bold,
                         color: ChunkyColors.outline,
@@ -507,7 +507,7 @@ class StatsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8.0),
+                SizedBox(height: 8.0),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
                   child: LinearProgressIndicator(
@@ -525,3 +525,7 @@ class StatsScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+

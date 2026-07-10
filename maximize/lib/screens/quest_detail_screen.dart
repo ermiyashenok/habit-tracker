@@ -30,7 +30,7 @@ class QuestDetailScreen extends StatelessWidget {
         backgroundColor: ChunkyColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: ChunkyColors.primary, size: 28.0),
+          icon: Icon(Icons.arrow_back, color: ChunkyColors.primary, size: 28.0),
           onPressed: onBack,
         ),
         title: Text(
@@ -74,12 +74,12 @@ class QuestDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12.0),
-                const Icon(Icons.stars, color: ChunkyColors.onSurface, size: 20.0),
-                const SizedBox(width: 4.0),
+                SizedBox(width: 12.0),
+                Icon(Icons.stars, color: ChunkyColors.onSurface, size: 20.0),
+                SizedBox(width: 4.0),
                 Text(
                   '${activity.xpReward} XP Reward',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'BeVietnamPro',
                     fontWeight: FontWeight.bold,
                     color: ChunkyColors.onSurfaceVariant,
@@ -88,7 +88,7 @@ class QuestDetailScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20.0),
+            SizedBox(height: 20.0),
 
             // Bento Stats Grid
             Row(
@@ -99,9 +99,9 @@ class QuestDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.bolt, color: ChunkyColors.onSurface, size: 24.0),
-                        const SizedBox(height: 8.0),
-                        const Text(
+                        Icon(Icons.bolt, color: ChunkyColors.onSurface, size: 24.0),
+                        SizedBox(height: 8.0),
+                        Text(
                           'STREAK',
                           style: TextStyle(
                             fontFamily: 'BeVietnamPro',
@@ -121,16 +121,16 @@ class QuestDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12.0),
+                SizedBox(width: 12.0),
                 Expanded(
                   child: ChunkyCard(
                     borderColor: ChunkyColors.surfaceContainerHighest,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.workspace_premium, color: ChunkyColors.primary, size: 24.0),
-                        const SizedBox(height: 8.0),
-                        const Text(
+                        Icon(Icons.workspace_premium, color: ChunkyColors.primary, size: 24.0),
+                        SizedBox(height: 8.0),
+                        Text(
                           'BEST STREAK',
                           style: TextStyle(
                             fontFamily: 'BeVietnamPro',
@@ -152,18 +152,18 @@ class QuestDetailScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12.0),
+            SizedBox(height: 12.0),
             ChunkyCard(
               borderColor: ChunkyColors.surfaceContainerHighest,
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: ChunkyColors.primary, size: 28.0),
-                  const SizedBox(width: 12.0),
+                  Icon(Icons.check_circle, color: ChunkyColors.primary, size: 28.0),
+                  SizedBox(width: 12.0),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'TOTAL COMPLETIONS',
                           style: TextStyle(
                             fontFamily: 'BeVietnamPro',
@@ -185,7 +185,7 @@ class QuestDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24.0),
+            SizedBox(height: 24.0),
 
             // Time and Repeat Patterns info
             Text(
@@ -196,7 +196,7 @@ class QuestDetailScreen extends StatelessWidget {
                 color: ChunkyColors.onSurface,
               ),
             ),
-            const SizedBox(height: 12.0),
+            SizedBox(height: 12.0),
             ChunkyCard(
               borderColor: ChunkyColors.outlineVariant,
               child: Column(
@@ -204,34 +204,34 @@ class QuestDetailScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Scheduled Reminder:',
                         style: TextStyle(fontFamily: 'BeVietnamPro', color: ChunkyColors.outline),
                       ),
                       Text(
                         activity.time ?? 'Anytime',
-                        style: const TextStyle(fontFamily: 'BeVietnamPro', fontWeight: FontWeight.bold),
+                        style: TextStyle(fontFamily: 'BeVietnamPro', fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8.0),
+                  SizedBox(height: 8.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Repeat Pattern:',
                         style: TextStyle(fontFamily: 'BeVietnamPro', color: ChunkyColors.outline),
                       ),
                       Text(
                         activity.repeatPattern.toUpperCase(),
-                        style: const TextStyle(fontFamily: 'BeVietnamPro', fontWeight: FontWeight.bold),
+                        style: TextStyle(fontFamily: 'BeVietnamPro', fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24.0),
+            SizedBox(height: 24.0),
 
             // Notes Section
             if (activity.notes.isNotEmpty) ...[
@@ -243,20 +243,20 @@ class QuestDetailScreen extends StatelessWidget {
                   color: ChunkyColors.onSurface,
                 ),
               ),
-              const SizedBox(height: 12.0),
+              SizedBox(height: 12.0),
               ChunkyCard(
                 borderColor: ChunkyColors.outlineVariant,
                 backgroundColor: ChunkyColors.surfaceContainerLow,
                 child: Text(
                   activity.notes,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'BeVietnamPro',
                     fontSize: 14.0,
                     height: 1.5,
                   ),
                 ),
               ),
-              const SizedBox(height: 24.0),
+              SizedBox(height: 24.0),
             ],
 
             // Danger actions
@@ -273,7 +273,7 @@ class QuestDetailScreen extends StatelessWidget {
                     backgroundColor: ChunkyColors.primaryContainer,
                     content: Text(
                       activity.isActive ? 'Quest reminders paused.' : 'Quest reminders enabled!',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 );
@@ -283,10 +283,10 @@ class QuestDetailScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(activity.isActive ? Icons.pause : Icons.play_arrow, color: ChunkyColors.onSurface),
-                  const SizedBox(width: 8.0),
+                  SizedBox(width: 8.0),
                   Text(
                     activity.isActive ? 'PAUSE QUEST' : 'RESUME QUEST',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'BeVietnamPro',
                       fontWeight: FontWeight.bold,
                       color: ChunkyColors.onSurface,
@@ -295,7 +295,7 @@ class QuestDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12.0),
+            SizedBox(height: 12.0),
             ChunkyButton(
               backgroundColor: ChunkyColors.errorRed,
               shadowColor: ChunkyColors.errorRed,
@@ -307,13 +307,13 @@ class QuestDetailScreen extends StatelessWidget {
                     backgroundColor: ChunkyColors.errorRed,
                     content: Text(
                       '"${activity.name}" deleted successfully.',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 );
                 onBack();
               },
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.delete, color: ChunkyColors.onSurface),
@@ -329,7 +329,7 @@ class QuestDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 32.0),
+            SizedBox(height: 32.0),
           ],
         ),
       ),
@@ -349,3 +349,7 @@ class QuestDetailScreen extends StatelessWidget {
     }
   }
 }
+
+
+
+

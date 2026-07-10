@@ -55,7 +55,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                     ),
                     child: Text(
                       '$unlockedCount / $totalCount UNLOCKED',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'BeVietnamPro',
                         fontWeight: FontWeight.bold,
                         fontSize: 11.0,
@@ -65,7 +65,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20.0),
+              SizedBox(height: 20.0),
 
               // Milestone Progress Card
               ChunkyCard(
@@ -81,10 +81,10 @@ class _BadgesScreenState extends State<BadgesScreen> {
                             color: ChunkyColors.surfaceContainerLow,
                             borderRadius: BorderRadius.circular(10.0),
                           ),
-                          child: const Icon(Icons.military_tech, color: ChunkyColors.primary),
+                          child: Icon(Icons.military_tech, color: ChunkyColors.primary),
                         ),
-                        const SizedBox(width: 12.0),
-                        const Expanded(
+                        SizedBox(width: 12.0),
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -111,13 +111,13 @@ class _BadgesScreenState extends State<BadgesScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16.0),
+                    SizedBox(height: 16.0),
                     Row(
                       children: [
                         Expanded(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(6.0),
-                            child: const LinearProgressIndicator(
+                            child: LinearProgressIndicator(
                               value: 0.80,
                               minHeight: 12.0,
                               backgroundColor: ChunkyColors.surfaceContainerLow,
@@ -125,8 +125,8 @@ class _BadgesScreenState extends State<BadgesScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12.0),
-                        const Text(
+                        SizedBox(width: 12.0),
+                        Text(
                           '80%',
                           style: TextStyle(
                             fontFamily: 'BeVietnamPro',
@@ -136,8 +136,8 @@ class _BadgesScreenState extends State<BadgesScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8.0),
-                    const Text(
+                    SizedBox(height: 8.0),
+                    Text(
                       'Complete 3 more daily tasks to unlock.',
                       style: TextStyle(
                         fontFamily: 'BeVietnamPro',
@@ -148,7 +148,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24.0),
+              SizedBox(height: 24.0),
 
               // Badges Grid
               GridView.builder(
@@ -166,7 +166,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                   return _buildBadgeCell(ach);
                 },
               ),
-              const SizedBox(height: 32.0),
+              SizedBox(height: 32.0),
             ],
           ),
         ),
@@ -224,12 +224,12 @@ class _BadgesScreenState extends State<BadgesScreen> {
                   right: 0,
                   child: Container(
                     padding: const EdgeInsets.all(4.0),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: ChunkyColors.onSurface,
                       shape: BoxShape.circle,
                       boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 2)],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.lock,
                       size: 14.0,
                       color: ChunkyColors.outline,
@@ -238,7 +238,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 12.0),
+          SizedBox(height: 12.0),
           Text(
             ach.title,
             style: GoogleFonts.plusJakartaSans(
@@ -248,7 +248,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4.0),
+          SizedBox(height: 4.0),
           Text(
             ach.isUnlocked ? 'Unlocked' : 'Locked',
             style: TextStyle(
@@ -299,7 +299,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20.0),
+              SizedBox(height: 20.0),
 
               // Title
               Text(
@@ -311,23 +311,23 @@ class _BadgesScreenState extends State<BadgesScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8.0),
+              SizedBox(height: 8.0),
 
               // Description
               Text(
                 ach.description,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'BeVietnamPro',
                   fontSize: 14.0,
                   color: ChunkyColors.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16.0),
+              SizedBox(height: 16.0),
 
               // Progress or unlocked status
               if (ach.isUnlocked)
-                const Text(
+                Text(
                   '🎉 UNLOCKED! Keep it up.',
                   style: TextStyle(
                     fontFamily: 'BeVietnamPro',
@@ -340,13 +340,13 @@ class _BadgesScreenState extends State<BadgesScreen> {
                   children: [
                     Text(
                       'PROGRESS: ${ach.progress}/${ach.threshold}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'BeVietnamPro',
                         fontWeight: FontWeight.bold,
                         color: ChunkyColors.primary,
                       ),
                     ),
-                    const SizedBox(height: 6.0),
+                    SizedBox(height: 6.0),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4.0),
                       child: LinearProgressIndicator(
@@ -358,7 +358,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                     ),
                   ],
                 ),
-              const SizedBox(height: 24.0),
+              SizedBox(height: 24.0),
 
               // Awesome Button
               ChunkyButton(
@@ -367,7 +367,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                     _selectedBadge = null;
                   });
                 },
-                child: const Text(
+                child: Text(
                   'AWESOME!',
                   style: TextStyle(
                     fontFamily: 'BeVietnamPro',
@@ -434,3 +434,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
     }
   }
 }
+
+
+
+

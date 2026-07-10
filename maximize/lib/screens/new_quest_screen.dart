@@ -44,7 +44,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
+            colorScheme: ColorScheme.light(
               primary: ChunkyColors.primary,
               onPrimary: ChunkyColors.onSurface,
               surface: ChunkyColors.onSurface,
@@ -69,12 +69,12 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: ChunkyColors.surfaceContainerHigh,
-        title: const Text('New Category', style: TextStyle(color: ChunkyColors.onSurface)),
+        title: Text('New Category', style: TextStyle(color: ChunkyColors.onSurface)),
         content: TextField(
           controller: catController,
           autofocus: true,
-          style: const TextStyle(color: ChunkyColors.onSurface),
-          decoration: const InputDecoration(
+          style: TextStyle(color: ChunkyColors.onSurface),
+          decoration: InputDecoration(
             hintText: 'e.g. STUDY, FITNESS...',
             hintStyle: TextStyle(color: ChunkyColors.outline),
           ),
@@ -83,7 +83,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: ChunkyColors.onSurfaceVariant)),
+            child: Text('Cancel', style: TextStyle(color: ChunkyColors.onSurfaceVariant)),
           ),
           TextButton(
             onPressed: () {
@@ -96,7 +96,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
               }
               Navigator.pop(ctx);
             },
-            child: const Text('Add', style: TextStyle(color: ChunkyColors.primary, fontWeight: FontWeight.bold)),
+            child: Text('Add', style: TextStyle(color: ChunkyColors.primary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -106,7 +106,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
   void _saveQuest() {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           backgroundColor: ChunkyColors.errorRed,
           content: Text('Please enter a quest name!', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
@@ -145,7 +145,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
         backgroundColor: ChunkyColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: ChunkyColors.primary, size: 28.0),
+          icon: Icon(Icons.close, color: ChunkyColors.primary, size: 28.0),
           onPressed: widget.onCancel,
         ),
         title: Text(
@@ -215,7 +215,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                     fontSize: 18.0,
                     color: ChunkyColors.onSurface,
                   ),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Ex: Slay the Dragon Gym',
                     hintStyle: TextStyle(color: ChunkyColors.outline),
                     border: InputBorder.none,
@@ -223,7 +223,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24.0),
+              SizedBox(height: 24.0),
 
               // Category Selector
               Padding(
@@ -258,7 +258,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                         borderRadius: BorderRadius.circular(24.0),
                         border: Border.all(color: ChunkyColors.outline),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.add, color: ChunkyColors.onSurfaceVariant, size: 18.0),
@@ -278,7 +278,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24.0),
+              SizedBox(height: 24.0),
 
               // Bento Grid for Reminder and XP Reward
               Row(
@@ -305,11 +305,11 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
                           child: Row(
                             children: [
-                              const Icon(Icons.schedule, color: ChunkyColors.onSurfaceVariant),
-                              const SizedBox(width: 8.0),
+                              Icon(Icons.schedule, color: ChunkyColors.onSurfaceVariant),
+                              SizedBox(width: 8.0),
                               Text(
                                 _selectedTime.format(context),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'BeVietnamPro',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15.0,
@@ -322,7 +322,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16.0),
+                  SizedBox(width: 16.0),
 
                   // XP Reward difficulty
                   Expanded(
@@ -351,8 +351,8 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.stars, color: ChunkyColors.onSurface),
-                              const SizedBox(width: 8.0),
+                              Icon(Icons.stars, color: ChunkyColors.onSurface),
+                              SizedBox(width: 8.0),
                               Text(
                                 '$_xpReward XP',
                                 style: GoogleFonts.plusJakartaSans(
@@ -369,7 +369,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24.0),
+              SizedBox(height: 24.0),
 
               // Tactical notes
               Padding(
@@ -389,12 +389,12 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                 child: TextField(
                   controller: _notesController,
                   maxLines: 3,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'BeVietnamPro', 
                     fontSize: 14.0,
                     color: ChunkyColors.onSurface,
                   ),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Add some tactical advice for your future self...',
                     hintStyle: TextStyle(color: ChunkyColors.outline),
                     border: InputBorder.none,
@@ -402,7 +402,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24.0),
+              SizedBox(height: 24.0),
 
               // Illustration box
               Container(
@@ -416,7 +416,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                     style: BorderStyle.solid,
                   ),
                 ),
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.compress, color: ChunkyColors.primary, size: 36.0),
@@ -433,14 +433,14 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 32.0),
+              SizedBox(height: 32.0),
 
               // Create Activity Button
               ChunkyButton(
                 backgroundColor: ChunkyColors.primaryContainer,
                 shadowColor: ChunkyColors.primary,
                 onTap: _saveQuest,
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.add_circle, color: ChunkyColors.onSurface),
@@ -457,7 +457,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 32.0),
+              SizedBox(height: 32.0),
             ],
           ),
         ),
@@ -475,7 +475,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
         });
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         decoration: BoxDecoration(
           color: isSelected ? ChunkyColors.onSurface : ChunkyColors.surfaceCard,
@@ -510,7 +510,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
               color: isSelected ? color : ChunkyColors.onSurfaceVariant,
               size: 18.0,
             ),
-            const SizedBox(width: 8.0),
+            SizedBox(width: 8.0),
             Text(
               cat,
               style: TextStyle(
@@ -526,3 +526,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
     );
   }
 }
+
+
+
+

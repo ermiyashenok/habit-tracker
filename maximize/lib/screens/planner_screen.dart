@@ -99,7 +99,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24.0),
+          SizedBox(height: 24.0),
 
           // Render view based on toggle
           _isWeekView ? _buildWeekView() : _buildMonthView(),
@@ -124,7 +124,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 color: ChunkyColors.onSurface,
               ),
             ),
-            const Text(
+            Text(
               'WEEK 38',
               style: TextStyle(
                 fontFamily: 'BeVietnamPro',
@@ -136,7 +136,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 16.0),
+        SizedBox(height: 16.0),
 
         // Horizontal Week Days selector
         SingleChildScrollView(
@@ -144,18 +144,18 @@ class _PlannerScreenState extends State<PlannerScreen> {
           child: Row(
             children: [
               _buildDayCard(dayName: 'MON', dayNum: '18', progress: 0.8),
-              const SizedBox(width: 12.0),
+              SizedBox(width: 12.0),
               _buildDayCard(dayName: 'TUE', dayNum: '19', progress: 0.4, isActive: true),
-              const SizedBox(width: 12.0),
+              SizedBox(width: 12.0),
               _buildDayCard(dayName: 'WED', dayNum: '20', progress: 0.0),
-              const SizedBox(width: 12.0),
+              SizedBox(width: 12.0),
               _buildDayCard(dayName: 'THU', dayNum: '21', progress: 0.2),
-              const SizedBox(width: 12.0),
+              SizedBox(width: 12.0),
               _buildDayCard(dayName: 'FRI', dayNum: '22', progress: 0.95),
             ],
           ),
         ),
-        const SizedBox(height: 24.0),
+        SizedBox(height: 24.0),
 
         // Bento Grid Title
         Text(
@@ -166,7 +166,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             color: ChunkyColors.onSurface,
           ),
         ),
-        const SizedBox(height: 16.0),
+        SizedBox(height: 16.0),
 
         // Goals & Streak Bento Grid
         ChunkyCard(
@@ -183,7 +183,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                       color: ChunkyColors.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(20.0),
                     ),
-                    child: const Text(
+                    child: Text(
                       'CURRENT GOAL',
                       style: TextStyle(
                         fontFamily: 'BeVietnamPro',
@@ -200,11 +200,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
                       color: ChunkyColors.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(12.0),
                     ),
-                    child: const Icon(Icons.translate, color: ChunkyColors.primary),
+                    child: Icon(Icons.translate, color: ChunkyColors.primary),
                   ),
                 ],
               ),
-              const SizedBox(height: 12.0),
+              SizedBox(height: 12.0),
               Text(
                 'Finish Language Module',
                 style: GoogleFonts.plusJakartaSans(
@@ -213,13 +213,13 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   color: ChunkyColors.onSurface,
                 ),
               ),
-              const SizedBox(height: 12.0),
+              SizedBox(height: 12.0),
               Row(
                 children: [
                   Expanded(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: const LinearProgressIndicator(
+                      child: LinearProgressIndicator(
                         value: 0.65,
                         minHeight: 12.0,
                         backgroundColor: ChunkyColors.surfaceContainerLow,
@@ -227,8 +227,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12.0),
-                  const Text(
+                  SizedBox(width: 12.0),
+                  Text(
                     '65%',
                     style: TextStyle(
                       fontFamily: 'BeVietnamPro',
@@ -238,8 +238,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12.0),
-              const Text(
+              SizedBox(height: 12.0),
+              Text(
                 '3 sessions left this week to reach your goal!',
                 style: TextStyle(
                   fontFamily: 'BeVietnamPro',
@@ -250,7 +250,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16.0),
+        SizedBox(height: 16.0),
 
         Row(
           children: [
@@ -274,14 +274,14 @@ class _PlannerScreenState extends State<PlannerScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8.0),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: ChunkyColors.onSurface,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.add, color: ChunkyColors.onSurface, size: 20.0),
+                        child: Icon(Icons.add, color: ChunkyColors.onSurface, size: 20.0),
                       ),
-                      const SizedBox(height: 8.0),
-                      const Text(
+                      SizedBox(height: 8.0),
+                      Text(
                         'Quick Add Task',
                         style: TextStyle(
                           fontFamily: 'BeVietnamPro',
@@ -294,7 +294,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 16.0),
+            SizedBox(width: 16.0),
             // Daily Streak Mini Card
             Expanded(
               child: ChunkyCard(
@@ -305,7 +305,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
+                    Row(
                       children: [
                         Icon(Icons.bolt, color: ChunkyColors.errorRed, size: 20.0),
                         SizedBox(width: 4.0),
@@ -320,7 +320,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16.0),
+                    SizedBox(height: 16.0),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
@@ -333,8 +333,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
                             color: ChunkyColors.errorRed,
                           ),
                         ),
-                        const SizedBox(width: 4.0),
-                        const Text(
+                        SizedBox(width: 4.0),
+                        Text(
                           'DAYS',
                           style: TextStyle(
                             fontFamily: 'BeVietnamPro',
@@ -351,7 +351,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24.0),
+        SizedBox(height: 24.0),
 
         // Suggested activities
         Row(
@@ -367,7 +367,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
             GestureDetector(
               onTap: widget.onAddQuestPressed,
-              child: const Text(
+              child: Text(
                 'SEE ALL',
                 style: TextStyle(
                   fontFamily: 'BeVietnamPro',
@@ -378,7 +378,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 16.0),
+        SizedBox(height: 16.0),
 
         _buildSuggestedActivityItem(
           title: 'Morning Gym Session',
@@ -386,21 +386,21 @@ class _PlannerScreenState extends State<PlannerScreen> {
           icon: Icons.fitness_center,
           color: ChunkyColors.primary,
         ),
-        const SizedBox(height: 12.0),
+        SizedBox(height: 12.0),
         _buildSuggestedActivityItem(
           title: 'Read 10 Pages',
           subtitle: '20 mins • Learning',
           icon: Icons.book,
           color: ChunkyColors.onSurface,
         ),
-        const SizedBox(height: 12.0),
+        SizedBox(height: 12.0),
         _buildSuggestedActivityItem(
           title: 'Daily Mindfulness',
           subtitle: '10 mins • Spirit',
           icon: Icons.mediation,
           color: ChunkyColors.onSurface,
         ),
-        const SizedBox(height: 32.0),
+        SizedBox(height: 32.0),
       ],
     );
   }
@@ -423,8 +423,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
             Row(
               children: [
-                const Icon(Icons.auto_graph, color: ChunkyColors.primary, size: 16.0),
-                const SizedBox(width: 4.0),
+                Icon(Icons.auto_graph, color: ChunkyColors.primary, size: 16.0),
+                SizedBox(width: 4.0),
                 Text(
                   '94% Consistency',
                   style: TextStyle(
@@ -438,7 +438,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 16.0),
+        SizedBox(height: 16.0),
         ChunkyCard(
           borderColor: ChunkyColors.surfaceContainerHighest,
           child: HeatmapGrid(
@@ -447,7 +447,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             year: DateTime.now().year,
           ),
         ),
-        const SizedBox(height: 24.0),
+        SizedBox(height: 24.0),
 
         // Monthly Goals Title
         Text(
@@ -458,7 +458,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             color: ChunkyColors.onSurface,
           ),
         ),
-        const SizedBox(height: 16.0),
+        SizedBox(height: 16.0),
 
         // Goal card 1
         _buildMonthlyGoalCard(
@@ -470,7 +470,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
           target: 2,
           progress: 0.50,
         ),
-        const SizedBox(height: 12.0),
+        SizedBox(height: 12.0),
         // Goal card 2
         _buildMonthlyGoalCard(
           title: '15 Gym Sessions',
@@ -481,7 +481,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
           target: 15,
           progress: 0.80,
         ),
-        const SizedBox(height: 24.0),
+        SizedBox(height: 24.0),
 
         // July Recurrence preview
         Row(
@@ -495,7 +495,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 color: ChunkyColors.onSurface,
               ),
             ),
-            const Text(
+            Text(
               'Edit',
               style: TextStyle(
                 fontFamily: 'BeVietnamPro',
@@ -505,14 +505,14 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 16.0),
+        SizedBox(height: 16.0),
 
         Row(
           children: [
             Expanded(
               child: ChunkyCard(
                 borderColor: ChunkyColors.surfaceContainerHighest,
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -534,11 +534,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 16.0),
+            SizedBox(width: 16.0),
             Expanded(
               child: ChunkyCard(
                 borderColor: ChunkyColors.surfaceContainerHighest,
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -562,12 +562,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24.0),
+        SizedBox(height: 24.0),
         ChunkyButton(
           backgroundColor: ChunkyColors.primaryContainer,
           shadowColor: ChunkyColors.primary,
           onTap: widget.onAddQuestPressed,
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.add_circle, color: ChunkyColors.onSurface),
@@ -584,7 +584,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 32.0),
+        SizedBox(height: 32.0),
       ],
     );
   }
@@ -620,7 +620,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 fontSize: 12.0,
               ),
             ),
-            const SizedBox(height: 4.0),
+            SizedBox(height: 4.0),
             Text(
               dayNum,
               style: GoogleFonts.plusJakartaSans(
@@ -629,7 +629,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 color: textColor,
               ),
             ),
-            const SizedBox(height: 8.0),
+            SizedBox(height: 8.0),
             Container(
               height: 6.0,
               decoration: BoxDecoration(
@@ -677,7 +677,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             backgroundColor: ChunkyColors.primaryContainer,
             content: Text(
               '"$title" added to today\'s missions!',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         );
@@ -693,7 +693,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
             child: Icon(icon, color: color, size: 24.0),
           ),
-          const SizedBox(width: 16.0),
+          SizedBox(width: 16.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -708,7 +708,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 ),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'BeVietnamPro',
                     fontSize: 12.0,
                     color: ChunkyColors.outline,
@@ -728,7 +728,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 width: 2.0,
               ),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.event_available,
               color: ChunkyColors.primary,
               size: 18.0,
@@ -765,7 +765,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
             child: Icon(icon, color: iconColor),
           ),
-          const SizedBox(width: 16.0),
+          SizedBox(width: 16.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -783,7 +783,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                     ),
                     Text(
                       '$current/$target',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'BeVietnamPro',
                         fontWeight: FontWeight.bold,
                         color: ChunkyColors.primary,
@@ -791,7 +791,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8.0),
+                SizedBox(height: 8.0),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
                   child: LinearProgressIndicator(
@@ -809,3 +809,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
     );
   }
 }
+
+
+
+
