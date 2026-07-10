@@ -62,7 +62,7 @@ class _WeeklyProgressChartState extends State<WeeklyProgressChart> {
                                   painter: _DashedBarPainter(),
                                 )
                               : Container(
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     color: ChunkyColors.primaryContainer,
                                     borderRadius: BorderRadius.only(
                                       topLeft: Radius.circular(8.0),
@@ -75,7 +75,7 @@ class _WeeklyProgressChartState extends State<WeeklyProgressChart> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8.0),
+                SizedBox(height: 8.0),
                 Text(
                   day.label,
                   style: TextStyle(
@@ -149,3 +149,5 @@ class _DashedBarPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+

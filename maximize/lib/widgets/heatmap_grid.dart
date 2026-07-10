@@ -31,7 +31,7 @@ class HeatmapGrid extends StatelessWidget {
         Center(
           child: Text(
             h,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'BeVietnamPro',
               fontWeight: FontWeight.bold,
               fontSize: 12,
@@ -59,7 +59,7 @@ class HeatmapGrid extends StatelessWidget {
             child: Center(
               child: Text(
                 '$day',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'BeVietnamPro',
                   fontWeight: FontWeight.normal,
                   fontSize: 12,
@@ -128,7 +128,7 @@ class HeatmapGrid extends StatelessWidget {
                     child: Container(
                       width: 5,
                       height: 5,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: ChunkyColors.secondary,
                         shape: BoxShape.circle,
                       ),
@@ -151,3 +151,5 @@ class HeatmapGrid extends StatelessWidget {
     );
   }
 }
+
+

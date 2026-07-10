@@ -48,7 +48,7 @@ class QuestLogApp extends StatelessWidget {
         textTheme: GoogleFonts.plusJakartaSansTextTheme(),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      home: LoginScreen(),
     );
   }
 }
@@ -175,3 +175,4 @@ class _AppShellState extends State<AppShell> {
     return 'Good evening 🌙';
   }
 }
+

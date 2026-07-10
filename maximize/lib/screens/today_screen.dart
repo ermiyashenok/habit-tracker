@@ -63,7 +63,7 @@ class _TodayScreenState extends State<TodayScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(width: 24), // Balance
+              SizedBox(width: 24), // Balance
               Text(
                 'DAY STREAK',
                 style: GoogleFonts.plusJakartaSans(
@@ -76,7 +76,7 @@ class _TodayScreenState extends State<TodayScreen> {
               Icon(Icons.info_outline, color: ChunkyColors.onSurfaceVariant),
             ],
           ),
-          const SizedBox(height: 32.0),
+          SizedBox(height: 32.0),
 
           // Hero Flame
           Center(
@@ -98,7 +98,7 @@ class _TodayScreenState extends State<TodayScreen> {
                   ),
                 ],
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   Icons.local_fire_department,
                   size: 72,
@@ -107,7 +107,7 @@ class _TodayScreenState extends State<TodayScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16.0),
 
           // Streak Number
           Center(
@@ -132,7 +132,7 @@ class _TodayScreenState extends State<TodayScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 32.0),
+          SizedBox(height: 32.0),
 
           // Stats Row
           Row(
@@ -143,7 +143,7 @@ class _TodayScreenState extends State<TodayScreen> {
               _buildStatCol('${max(streak, 12)}', 'Max streak'), // Dummy max streak
             ],
           ),
-          const SizedBox(height: 32.0),
+          SizedBox(height: 32.0),
 
           // THIS WEEK Card
           ChunkyCard(
@@ -160,7 +160,7 @@ class _TodayScreenState extends State<TodayScreen> {
                     color: ChunkyColors.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 16.0),
+                SizedBox(height: 16.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(7, (index) {
@@ -179,9 +179,9 @@ class _TodayScreenState extends State<TodayScreen> {
                             color: isToday ? ChunkyColors.onSurface : ChunkyColors.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(height: 8.0),
+                        SizedBox(height: 8.0),
                         if (isPast || (isToday && completionPercent == 100))
-                          const Icon(Icons.local_fire_department, color: ChunkyColors.primary, size: 28)
+                          Icon(Icons.local_fire_department, color: ChunkyColors.primary, size: 28)
                         else
                           Container(
                             width: 24,
@@ -202,7 +202,7 @@ class _TodayScreenState extends State<TodayScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16.0),
 
           // MILESTONE Card
           ChunkyCard(
@@ -217,11 +217,11 @@ class _TodayScreenState extends State<TodayScreen> {
                     shape: BoxShape.circle,
                     border: Border.all(color: ChunkyColors.primary, width: 2),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(Icons.local_fire_department, color: ChunkyColors.primary, size: 24),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 // Progress Bar
                 Expanded(
                   child: Column(
@@ -234,7 +234,7 @@ class _TodayScreenState extends State<TodayScreen> {
                           color: ChunkyColors.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Container(
                         height: 4,
                         decoration: BoxDecoration(
@@ -252,7 +252,7 @@ class _TodayScreenState extends State<TodayScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         'to unlock your next milestone.',
                         style: GoogleFonts.plusJakartaSans(
@@ -263,7 +263,7 @@ class _TodayScreenState extends State<TodayScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 // Next milestone circle
                 Container(
                   width: 50,
@@ -287,7 +287,7 @@ class _TodayScreenState extends State<TodayScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 32.0),
+          SizedBox(height: 32.0),
 
           // Missions Title
           Text(
@@ -299,13 +299,13 @@ class _TodayScreenState extends State<TodayScreen> {
               color: ChunkyColors.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 12.0),
+          SizedBox(height: 12.0),
 
           // Checklist
           if (activities.isEmpty)
             ChunkyCard(
               padding: const EdgeInsets.all(24.0),
-              child: const Column(
+              child: Column(
                 children: [
                   Icon(Icons.sentiment_dissatisfied, size: 48, color: ChunkyColors.outlineVariant),
                   SizedBox(height: 12),
@@ -326,7 +326,7 @@ class _TodayScreenState extends State<TodayScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: activities.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12.0),
+              separatorBuilder: (_, __) => SizedBox(height: 12.0),
               itemBuilder: (context, index) {
                 final act = activities[index];
                 final isDone = logs.any((l) => l.activityId == act.id && l.date == todayStr && l.status == 'done');
@@ -348,7 +348,7 @@ class _TodayScreenState extends State<TodayScreen> {
                       GestureDetector(
                         onTap: () => widget.state.toggleTask(act.id, todayStr),
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
+                          duration: Duration(milliseconds: 150),
                           width: 36.0,
                           height: 36.0,
                           decoration: BoxDecoration(
@@ -368,7 +368,7 @@ class _TodayScreenState extends State<TodayScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16.0),
+                      SizedBox(width: 16.0),
 
                       // Text info
                       Expanded(
@@ -384,10 +384,10 @@ class _TodayScreenState extends State<TodayScreen> {
                                 color: isDone ? ChunkyColors.onSurfaceVariant : ChunkyColors.onSurface,
                               ),
                             ),
-                            const SizedBox(height: 4.0),
+                            SizedBox(height: 4.0),
                             Text(
                               '${act.category.toUpperCase()} • ${act.time ?? "Anytime"}${accumulatedSeconds > 0 ? " • ${_formatDuration(accumulatedSeconds)}" : ""}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'BeVietnamPro',
                                 fontSize: 12.0,
                                 color: ChunkyColors.onSurfaceVariant,
@@ -426,7 +426,7 @@ class _TodayScreenState extends State<TodayScreen> {
                 );
               },
             ),
-          const SizedBox(height: 24.0),
+          SizedBox(height: 24.0),
 
           ChunkyButton(
             backgroundColor: ChunkyColors.surfaceContainerLow,
@@ -434,8 +434,8 @@ class _TodayScreenState extends State<TodayScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.add, color: ChunkyColors.onSurface),
-                const SizedBox(width: 8),
+                Icon(Icons.add, color: ChunkyColors.onSurface),
+                SizedBox(width: 8),
                 Text(
                   'NEW MISSION',
                   style: GoogleFonts.plusJakartaSans(
@@ -448,7 +448,7 @@ class _TodayScreenState extends State<TodayScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 32.0),
+          SizedBox(height: 32.0),
         ],
       ),
     );
@@ -465,7 +465,7 @@ class _TodayScreenState extends State<TodayScreen> {
             color: ChunkyColors.onSurface,
           ),
         ),
-        const SizedBox(height: 4.0),
+        SizedBox(height: 4.0),
         Text(
           bottomText,
           style: GoogleFonts.plusJakartaSans(
@@ -477,3 +477,5 @@ class _TodayScreenState extends State<TodayScreen> {
     );
   }
 }
+
+
