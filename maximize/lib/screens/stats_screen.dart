@@ -200,6 +200,58 @@ class StatsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16.0),
 
+          // Freezes Card
+          ChunkyCard(
+            borderColor: ChunkyColors.surfaceContainerHighest,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: ChunkyColors.secondaryFixed.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(16.0),
+                    border: Border.all(color: ChunkyColors.secondaryFixed, width: 2.0),
+                  ),
+                  child: const Icon(Icons.ac_unit, color: ChunkyColors.secondaryFixed, size: 32.0),
+                ),
+                const SizedBox(width: 16.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'STREAK FREEZES',
+                        style: TextStyle(
+                          fontFamily: 'BeVietnamPro',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10.0,
+                          color: ChunkyColors.outline,
+                        ),
+                      ),
+                      Text(
+                        '${state.userFreezesRemaining} Remaining',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 24.0,
+                          color: ChunkyColors.onSurface,
+                        ),
+                      ),
+                      const Text(
+                        'Grace days protect your streak if you miss a day.',
+                        style: TextStyle(
+                          fontFamily: 'BeVietnamPro',
+                          fontSize: 11.0,
+                          color: ChunkyColors.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16.0),
+
           // Completion Chart Section
           ChunkyCard(
             borderColor: ChunkyColors.surfaceContainerHighest,
