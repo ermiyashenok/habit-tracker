@@ -7,14 +7,18 @@ import 'providers/app_state.dart';
 import 'screens/today_screen.dart';
 import 'screens/planner_screen.dart';
 import 'screens/stats_screen.dart';
-import 'screens/friends_screen.dart';
-import 'screens/badges_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/social_screen.dart';
 import 'screens/new_quest_screen.dart';
 import 'screens/quest_detail_screen.dart';
+import 'screens/login_screen.dart';
 import 'models/activity.dart';
 
-void main() {
+import 'services/notification_service.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -44,7 +48,7 @@ class QuestLogApp extends StatelessWidget {
         textTheme: GoogleFonts.plusJakartaSansTextTheme(),
         useMaterial3: true,
       ),
-      home: const AppShell(),
+      home: const LoginScreen(),
     );
   }
 }
@@ -129,113 +133,9 @@ class _AppShellState extends State<AppShell> {
 
     return Scaffold(
       backgroundColor: ChunkyColors.background,
-      appBar: AppBar(
-        backgroundColor: ChunkyColors.background,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Row(
-          children: [
-            Container(
-              width: 40.0,
-              height: 40.0,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: ChunkyColors.primaryContainer, width: 2.0),
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuAAcPH8KsDjc80EHZXxfve3z1KCmHRKxbYDvvIWLNcPQWckU71u_7Nv8pGRqfGdi8yrPI0QjgDNDIpMZ44UrUr8qbRjdBlJSflltrW6lNLto9VxscxEInwzfCJUFjYogG-hfXfmm4TJGLBxOWS4z0f1Q32MptONBYsEGlFyD7p9_sCuocJ5VPmeib8Ov5btE9btVZejSJjD1WJrlpKammtOKRhjVbB5wGmO0xzZuTfW13DYelg5FSLeaKLFxHIYjquBiirwqhZGLJQL',
-                  ),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12.0),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getGreeting(),
-                  style: const TextStyle(
-                    fontFamily: 'BeVietnamPro',
-                    fontSize: 12.0,
-                    color: ChunkyColors.outline,
-                  ),
-                ),
-                Text(
-                  'Quest Log',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 20.0,
-                    color: ChunkyColors.onSurface,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          // XP Badge
-          Container(
-            margin: const EdgeInsets.only(right: 8.0),
-            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-            decoration: BoxDecoration(
-              color: ChunkyColors.secondaryFixed,
-              borderRadius: BorderRadius.circular(20.0),
-              border: Border.all(color: ChunkyColors.secondary, width: 2.0),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.stars, color: ChunkyColors.secondary, size: 16.0),
-                const SizedBox(width: 4.0),
-                Text(
-                  '${_appState.userXp}',
-                  style: const TextStyle(
-                    fontFamily: 'BeVietnamPro',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12.0,
-                    color: ChunkyColors.secondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Streak Badge
-          Container(
-            margin: const EdgeInsets.only(right: 16.0),
-            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-            decoration: BoxDecoration(
-              color: ChunkyColors.primaryFixedDim.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(20.0),
-              border: Border.all(color: ChunkyColors.primary, width: 2.0),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.local_fire_department, color: ChunkyColors.secondaryContainer, size: 16.0),
-                const SizedBox(width: 4.0),
-                Text(
-                  '${_appState.userStreak}',
-                  style: const TextStyle(
-                    fontFamily: 'BeVietnamPro',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12.0,
-                    color: ChunkyColors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4.0),
-          child: Container(
-            color: ChunkyColors.surfaceContainerHighest,
-            height: 4.0,
-          ),
-        ),
+      body: SafeArea(
+        child: _buildBody(),
       ),
-      body: _buildBody(),
       bottomNavigationBar: BottomNavBar(
         currentTab: _appState.currentTab,
         onTabSelected: _onTabSelected,
@@ -259,12 +159,12 @@ class _AppShellState extends State<AppShell> {
       case CurrentTab.stats:
         return StatsScreen(
           state: _appState,
-          onViewAchievementsPressed: () => _onTabSelected(CurrentTab.badges),
+          onViewAchievementsPressed: () => _onTabSelected(CurrentTab.profile),
         );
-      case CurrentTab.friends:
-        return FriendsScreen(state: _appState);
-      case CurrentTab.badges:
-        return BadgesScreen(state: _appState);
+      case CurrentTab.social:
+        return SocialScreen(state: _appState);
+      case CurrentTab.profile:
+        return ProfileScreen(state: _appState);
     }
   }
 
