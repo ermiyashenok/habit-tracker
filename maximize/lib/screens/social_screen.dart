@@ -8,7 +8,7 @@ import 'badges_screen.dart';
 class SocialScreen extends StatelessWidget {
   final AppState state;
 
-  const SocialScreen({
+  SocialScreen({
     super.key,
     required this.state,
   });
@@ -49,3 +49,4 @@ class SocialScreen extends StatelessWidget {
     );
   }
 }
+
