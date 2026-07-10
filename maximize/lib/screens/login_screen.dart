@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../widgets/chunky_colors.dart';
 import '../widgets/chunky_button.dart';
 import '../main.dart'; // To navigate to AppShell
+import 'signup_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -27,13 +28,13 @@ class LoginScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.transparent,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.local_fire_department,
                       color: ChunkyColors.primary,
                       size: 70.0,
                     ),
                   ),
-                  const SizedBox(height: 16.0),
+                  SizedBox(height: 16.0),
                   
                   // App Title
                   Text(
@@ -45,7 +46,7 @@ class LoginScreen extends StatelessWidget {
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 8.0),
+                  SizedBox(height: 8.0),
                   Text(
                     'HABIT TRACKER',
                     style: TextStyle(
@@ -62,7 +63,7 @@ class LoginScreen extends StatelessWidget {
             
             // Bottom Sheet Area
             Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: ChunkyColors.surfaceContainerHigh, // Dark grey instead of yellow for dark mode
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(32.0),
@@ -81,7 +82,7 @@ class LoginScreen extends StatelessWidget {
                       color: ChunkyColors.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 16.0),
+                  SizedBox(height: 16.0),
                   Text(
                     'Forge your habits and conquer your day. Join us to track your daily quests and level up your life.',
                     style: TextStyle(
@@ -91,53 +92,53 @@ class LoginScreen extends StatelessWidget {
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 40.0),
+                  SizedBox(height: 40.0),
                   
                   // Buttons side by side
                   Row(
                     children: [
                       Expanded(
                         child: ChunkyButton(
-                          backgroundColor: Colors.black,
+                          backgroundColor: ChunkyColors.onSurface,
                           shadowColor: Colors.transparent, // Flat design like the image
-                          borderColor: Colors.black,
+                          borderColor: ChunkyColors.onSurface,
                           onTap: () {
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(builder: (context) => const AppShell()),
                             );
                           },
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'Sign In',
                               style: TextStyle(
                                 fontFamily: 'BeVietnamPro',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16.0,
-                                color: Colors.white,
+                                color: ChunkyColors.surface,
                               ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16.0),
+                      SizedBox(width: 16.0),
                       Expanded(
                         child: ChunkyButton(
-                          backgroundColor: Colors.white,
+                          backgroundColor: ChunkyColors.surface,
                           shadowColor: Colors.transparent, // Flat design like the image
-                          borderColor: Colors.white,
+                          borderColor: ChunkyColors.surface,
                           onTap: () {
                             Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(builder: (context) => const AppShell()),
+                              MaterialPageRoute(builder: (context) => const SignUpScreen()),
                             );
                           },
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'Sign Up',
                               style: TextStyle(
                                 fontFamily: 'BeVietnamPro',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16.0,
-                                color: Colors.black,
+                                color: ChunkyColors.onSurface,
                               ),
                             ),
                           ),
@@ -154,3 +155,6 @@ class LoginScreen extends StatelessWidget {
     );
   }
 }
+
+
+
