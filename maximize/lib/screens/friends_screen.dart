@@ -59,7 +59,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 builder: (context) {
                   final hasFocus = Focus.of(context).hasFocus;
                   return AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
+                    duration: Duration(milliseconds: 150),
                     decoration: BoxDecoration(
                       color: ChunkyColors.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(16.0),
@@ -78,8 +78,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     ),
                     child: TextField(
                       controller: _searchController,
-                      style: const TextStyle(fontFamily: 'BeVietnamPro', fontSize: 16.0),
-                      decoration: const InputDecoration(
+                      style: TextStyle(fontFamily: 'BeVietnamPro', fontSize: 16.0),
+                      decoration: InputDecoration(
                         hintText: 'Find friends...',
                         prefixIcon: Icon(Icons.search, color: ChunkyColors.outline),
                         border: InputBorder.none,
@@ -91,7 +91,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 24.0),
+          SizedBox(height: 24.0),
 
           // Stats Quick Look (Horizontal Scroll)
           SingleChildScrollView(
@@ -105,7 +105,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   cardColor: ChunkyColors.surfaceContainerLow,
                   borderColor: ChunkyColors.primary,
                 ),
-                const SizedBox(width: 12.0),
+                SizedBox(width: 12.0),
                 _buildQuickStatCard(
                   title: 'Active Streak',
                   value: '${widget.state.userStreak} Days',
@@ -113,7 +113,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   cardColor: ChunkyColors.primaryFixedDim.withOpacity(0.4),
                   borderColor: ChunkyColors.primary,
                 ),
-                const SizedBox(width: 12.0),
+                SizedBox(width: 12.0),
                 _buildQuickStatCard(
                   title: 'Badges',
                   value: '8',
@@ -124,7 +124,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24.0),
+          SizedBox(height: 24.0),
 
           // Leaderboard
           Row(
@@ -138,7 +138,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   color: ChunkyColors.onSurface,
                 ),
               ),
-              const Text(
+              Text(
                 'View All',
                 style: TextStyle(
                   fontFamily: 'BeVietnamPro',
@@ -148,7 +148,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12.0),
+          SizedBox(height: 12.0),
           ChunkyCard(
             backgroundColor: ChunkyColors.surfaceContainerLow,
             borderColor: ChunkyColors.outlineVariant,
@@ -164,7 +164,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   avatarUrl: friends[0].avatarUrl,
                   rankColor: ChunkyColors.onSurface,
                 ),
-                const SizedBox(height: 12.0),
+                SizedBox(height: 12.0),
                 _buildLeaderboardRow(
                   rank: 2,
                   name: 'Jordan Lee',
@@ -176,7 +176,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24.0),
+          SizedBox(height: 24.0),
 
           // Friends Activities
           Text(
@@ -187,7 +187,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               color: ChunkyColors.onSurface,
             ),
           ),
-          const SizedBox(height: 12.0),
+          SizedBox(height: 12.0),
 
           // Sarah Chen achievement card
           _buildActivityCard(
@@ -197,7 +197,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             badgeIcon: Icons.wb_sunny,
             badgeColor: ChunkyColors.primary,
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16.0),
 
           // Mika achievement card
           _buildActivityCard(
@@ -208,7 +208,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             badgeColor: ChunkyColors.primary,
             isStreakMilestone: true,
           ),
-          const SizedBox(height: 32.0),
+          SizedBox(height: 32.0),
         ],
       ),
     );
@@ -232,7 +232,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, color: borderColor, size: 24.0),
-            const SizedBox(height: 8.0),
+            SizedBox(height: 8.0),
             Text(
               title,
               style: TextStyle(
@@ -242,7 +242,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 color: borderColor,
               ),
             ),
-            const SizedBox(height: 4.0),
+            SizedBox(height: 4.0),
             Text(
               value,
               style: GoogleFonts.plusJakartaSans(
@@ -274,7 +274,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           color: ChunkyColors.surfaceContainerHighest,
           width: 2.0,
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: ChunkyColors.surfaceContainerHighest,
             offset: Offset(0, 4),
@@ -295,15 +295,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
             child: Center(
               child: Text(
                 '$rank',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'BeVietnamPro',
                   fontWeight: FontWeight.bold,
-                  color: ChunkyColors.onSurface,
+                  color: ChunkyColors.surface,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12.0),
+          SizedBox(width: 12.0),
           Container(
             width: 40.0,
             height: 40.0,
@@ -316,24 +316,25 @@ class _FriendsScreenState extends State<FriendsScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 12.0),
+          SizedBox(width: 12.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'BeVietnamPro',
                     fontWeight: FontWeight.bold,
                     fontSize: 14.0,
+                    color: ChunkyColors.surface,
                   ),
                 ),
                 Text(
                   points,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'BeVietnamPro',
-                    color: ChunkyColors.outline,
+                    color: ChunkyColors.surfaceContainerHigh,
                     fontSize: 12.0,
                   ),
                 ),
@@ -342,14 +343,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
           ),
           Row(
             children: [
-              const Icon(Icons.local_fire_department, color: ChunkyColors.primary, size: 20.0),
-              const SizedBox(width: 4.0),
+              Icon(Icons.local_fire_department, color: ChunkyColors.primary, size: 20.0),
+              SizedBox(width: 4.0),
               Text(
                 '$streak',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'BeVietnamPro',
                   fontWeight: FontWeight.bold,
                   fontSize: 14.0,
+                  color: ChunkyColors.surface,
                 ),
               ),
             ],
@@ -389,14 +391,14 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12.0),
+              SizedBox(width: 12.0),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     RichText(
                       text: TextSpan(
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'BeVietnamPro',
                           fontSize: 14.0,
                           color: ChunkyColors.onSurface,
@@ -404,7 +406,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         children: [
                           TextSpan(
                             text: friend.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           TextSpan(
                             text: isStreakMilestone ? ' hit a ' : ' earned the ',
@@ -419,7 +421,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     ),
                     Text(
                       friend.recentActivityTime,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'BeVietnamPro',
                         color: ChunkyColors.outline,
                         fontSize: 12.0,
@@ -430,7 +432,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16.0),
 
           // Detail box
           if (!isStreakMilestone)
@@ -452,7 +454,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     ),
                     child: Icon(badgeIcon, color: badgeColor),
                   ),
-                  const SizedBox(width: 12.0),
+                  SizedBox(width: 12.0),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -468,7 +470,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       ),
                       Text(
                         badgeTitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'BeVietnamPro',
                           fontWeight: FontWeight.bold,
                           fontSize: 14.0,
@@ -480,7 +482,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               ),
             ),
 
-          const SizedBox(height: 12.0),
+          SizedBox(height: 12.0),
 
           // Action buttons
           Row(
@@ -518,12 +520,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               color: hasReacted ? ChunkyColors.primary : ChunkyColors.primary,
                               size: 20.0,
                             ),
-                            const SizedBox(width: 8.0),
+                            SizedBox(width: 8.0),
                             Text(
                               hasReacted ? 'Sent!' : 'Cheer',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'BeVietnamPro',
                                 fontWeight: FontWeight.bold,
+                                color: hasReacted ? ChunkyColors.primary : ChunkyColors.surface,
                               ),
                             ),
                           ],
@@ -541,7 +544,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12.0),
+              SizedBox(width: 12.0),
               Container(
                 width: 48.0,
                 height: 44.0,
@@ -552,7 +555,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     color: ChunkyColors.surfaceContainerHighest,
                     width: 2.0,
                   ),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
                       color: ChunkyColors.surfaceContainerHighest,
                       offset: Offset(0, 4),
@@ -564,7 +567,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 child: Center(
                   child: Text(
                     isStreakMilestone ? '🔥' : '👏',
-                    style: const TextStyle(fontSize: 20.0),
+                    style: TextStyle(fontSize: 20.0),
                   ),
                 ),
               ),
@@ -575,3 +578,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 }
+
+
+
