@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/activity.dart';
 import '../models/daily_log.dart';
 import '../models/friend.dart';
@@ -71,46 +73,52 @@ class AppState extends ChangeNotifier {
   }
 
   AppState() {
-    _loadInitialData();
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      _loadInitialData();
+    });
   }
 
   // Persistence methods
-  Future<File> _getFile(String fileName) async {
-    final directory = await getApplicationDocumentsDirectory();
-    return File('${directory.path}/$fileName.json');
+  DocumentReference get _dbDoc {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest_user';
+    return FirebaseFirestore.instance.collection('users').doc(uid).collection('app_data').doc('state');
   }
 
   Future<void> _loadInitialData() async {
     try {
-      final activitiesFile = await _getFile('activities');
-      final logsFile = await _getFile('logs');
-      final achievementsFile = await _getFile('achievements');
+      final docSnapshot = await _dbDoc.get();
 
-      if (await activitiesFile.exists()) {
-        final content = await activitiesFile.readAsString();
-        final List<dynamic> jsonList = jsonDecode(content);
-        _activities = jsonList.map((e) => Activity.fromJson(e)).toList();
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        
+        if (data['activities'] != null) {
+          final List<dynamic> jsonList = data['activities'];
+          _activities = jsonList.map((e) => Activity.fromJson(e as Map<String, dynamic>)).toList();
+        } else {
+          _activities = _getDefaultActivities();
+        }
+
+        if (data['dailyLogs'] != null) {
+          final List<dynamic> jsonList = data['dailyLogs'];
+          _dailyLogs = jsonList.map((e) => DailyLog.fromJson(e as Map<String, dynamic>)).toList();
+        } else {
+          _dailyLogs = _getDefaultLogs();
+        }
+
+        if (data['achievements'] != null) {
+          final List<dynamic> jsonList = data['achievements'];
+          _achievements = jsonList.map((e) => Achievement.fromJson(e as Map<String, dynamic>)).toList();
+        } else {
+          _achievements = _getDefaultAchievements();
+        }
       } else {
         _activities = _getDefaultActivities();
-      }
-
-      if (await logsFile.exists()) {
-        final content = await logsFile.readAsString();
-        final List<dynamic> jsonList = jsonDecode(content);
-        _dailyLogs = jsonList.map((e) => DailyLog.fromJson(e)).toList();
-      } else {
         _dailyLogs = _getDefaultLogs();
-      }
-
-      if (await achievementsFile.exists()) {
-        final content = await achievementsFile.readAsString();
-        final List<dynamic> jsonList = jsonDecode(content);
-        _achievements = jsonList.map((e) => Achievement.fromJson(e)).toList();
-      } else {
         _achievements = _getDefaultAchievements();
+        await saveAllData();
       }
     } catch (e) {
-      if (kDebugMode) print('Error loading data: $e');
+      if (kDebugMode) print('Error loading data from Firestore: $e');
       _activities = _getDefaultActivities();
       _dailyLogs = _getDefaultLogs();
       _achievements = _getDefaultAchievements();
@@ -123,16 +131,25 @@ class AppState extends ChangeNotifier {
 
   Future<void> saveAllData() async {
     try {
-      final activitiesFile = await _getFile('activities');
-      final logsFile = await _getFile('logs');
-      final achievementsFile = await _getFile('achievements');
-
-      await activitiesFile.writeAsString(jsonEncode(_activities.map((e) => e.toJson()).toList()));
-      await logsFile.writeAsString(jsonEncode(_dailyLogs.map((e) => e.toJson()).toList()));
-      await achievementsFile.writeAsString(jsonEncode(_achievements.map((e) => e.toJson()).toList()));
+      await _dbDoc.set({
+        'activities': _activities.map((e) => e.toJson()).toList(),
+        'dailyLogs': _dailyLogs.map((e) => e.toJson()).toList(),
+        'achievements': _achievements.map((e) => e.toJson()).toList(),
+      }, SetOptions(merge: true));
     } catch (e) {
-      if (kDebugMode) print('Error saving data: $e');
+      if (kDebugMode) print('Error saving data to Firestore: $e');
     }
+  }
+
+  Future<void> clearAllData() async {
+    _activities.clear();
+    _dailyLogs.clear();
+    _achievements.clear();
+    _userXp = 0;
+    _level = 1;
+    _recalculateStreaks();
+    notifyListeners();
+    await saveAllData();
   }
 
   // Timer controls
