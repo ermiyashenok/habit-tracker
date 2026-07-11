@@ -52,13 +52,13 @@ class AppState extends ChangeNotifier {
   List<Friend> get friends => _friends;
 
   // User Stats
-  int _userXp = 2450;
+  int _userXp = 0;
   int get userXp => _userXp;
-  int _userStreak = 12;
+  int _userStreak = 0;
   int get userStreak => _userStreak;
-  int _userBestStreak = 24;
+  int _userBestStreak = 0;
   int get userBestStreak => _userBestStreak;
-  int _level = 12;
+  int _level = 1;
   int get level => _level;
   int _totalEarnedFreezes = 2; // Starts with 2 freezes
   int _userFreezesRemaining = 2;
@@ -95,33 +95,40 @@ class AppState extends ChangeNotifier {
           final List<dynamic> jsonList = data['activities'];
           _activities = jsonList.map((e) => Activity.fromJson(e as Map<String, dynamic>)).toList();
         } else {
-          _activities = _getDefaultActivities();
+          _activities = [];
         }
 
         if (data['dailyLogs'] != null) {
           final List<dynamic> jsonList = data['dailyLogs'];
           _dailyLogs = jsonList.map((e) => DailyLog.fromJson(e as Map<String, dynamic>)).toList();
         } else {
-          _dailyLogs = _getDefaultLogs();
+          _dailyLogs = [];
         }
 
         if (data['achievements'] != null) {
           final List<dynamic> jsonList = data['achievements'];
           _achievements = jsonList.map((e) => Achievement.fromJson(e as Map<String, dynamic>)).toList();
         } else {
-          _achievements = _getDefaultAchievements();
+          _achievements = _getEmptyAchievements();
         }
+
+        _userXp = data['userXp'] ?? 0;
+        _userBestStreak = data['userBestStreak'] ?? 0;
       } else {
-        _activities = _getDefaultActivities();
-        _dailyLogs = _getDefaultLogs();
-        _achievements = _getDefaultAchievements();
+        _activities = [];
+        _dailyLogs = [];
+        _achievements = _getEmptyAchievements();
+        _userXp = 0;
+        _userBestStreak = 0;
         await saveAllData();
       }
     } catch (e) {
       if (kDebugMode) print('Error loading data from Firestore: $e');
-      _activities = _getDefaultActivities();
-      _dailyLogs = _getDefaultLogs();
-      _achievements = _getDefaultAchievements();
+      _activities = [];
+      _dailyLogs = [];
+      _achievements = _getEmptyAchievements();
+      _userXp = 0;
+      _userBestStreak = 0;
     }
 
     _friends = _getDefaultFriends();
@@ -135,6 +142,8 @@ class AppState extends ChangeNotifier {
         'activities': _activities.map((e) => e.toJson()).toList(),
         'dailyLogs': _dailyLogs.map((e) => e.toJson()).toList(),
         'achievements': _achievements.map((e) => e.toJson()).toList(),
+        'userXp': _userXp,
+        'userBestStreak': _userBestStreak,
       }, SetOptions(merge: true));
     } catch (e) {
       if (kDebugMode) print('Error saving data to Firestore: $e');
@@ -466,114 +475,7 @@ class AppState extends ChangeNotifier {
     return _dailyLogs.where((l) => l.activityId == activityId && l.status == 'done').length;
   }
 
-  // Default data generation
-  List<Activity> _getDefaultActivities() {
-    return [
-      Activity(
-        id: 'act_1',
-        name: 'Morning Run',
-        category: 'Health',
-        time: '07:00',
-        repeatPattern: 'daily',
-        xpReward: 100,
-        createdAt: DateTime.now().subtract(const Duration(days: 30)),
-      ),
-      Activity(
-        id: 'act_2',
-        name: 'Deep Work Session',
-        category: 'Work',
-        time: '09:00',
-        repeatPattern: 'daily',
-        xpReward: 150,
-        createdAt: DateTime.now().subtract(const Duration(days: 30)),
-      ),
-      Activity(
-        id: 'act_3',
-        name: 'Learn Spanish',
-        category: 'Mind',
-        time: '13:00',
-        repeatPattern: 'daily',
-        xpReward: 120,
-        createdAt: DateTime.now().subtract(const Duration(days: 30)),
-      ),
-      Activity(
-        id: 'act_4',
-        name: 'Read 10 Pages',
-        category: 'Mind',
-        time: '20:00',
-        repeatPattern: 'daily',
-        xpReward: 80,
-        createdAt: DateTime.now().subtract(const Duration(days: 30)),
-      ),
-    ];
-  }
-
-  List<DailyLog> _getDefaultLogs() {
-    final logs = <DailyLog>[];
-    final now = DateTime.now();
-
-    // Populate past 30 days
-    for (int i = 1; i <= 30; i++) {
-      final date = now.subtract(Duration(days: i));
-      final dateStr = _formatDate(date);
-
-      // Simulate completion rates: Morning Run (70%), Deep Work (80%), Spanish (60%), Read (50%)
-      if (i % 3 != 0) {
-        logs.add(DailyLog(
-          id: 'log_${i}_1',
-          activityId: 'act_1',
-          date: dateStr,
-          status: 'done',
-          completedAt: date,
-          durationSeconds: 1800,
-        ));
-      }
-      if (i % 4 != 0) {
-        logs.add(DailyLog(
-          id: 'log_${i}_2',
-          activityId: 'act_2',
-          date: dateStr,
-          status: 'done',
-          completedAt: date,
-          durationSeconds: 5400,
-        ));
-      }
-      if (i % 5 != 0) {
-        logs.add(DailyLog(
-          id: 'log_${i}_3',
-          activityId: 'act_3',
-          date: dateStr,
-          status: 'done',
-          completedAt: date,
-          durationSeconds: 900,
-        ));
-      }
-      if (i % 2 == 0) {
-        logs.add(DailyLog(
-          id: 'log_${i}_4',
-          activityId: 'act_4',
-          date: dateStr,
-          status: 'done',
-          completedAt: date,
-          durationSeconds: 1200,
-        ));
-      }
-    }
-
-    // Add today's log - Morning Run is pre-completed
-    logs.add(DailyLog(
-      id: 'log_today_1',
-      activityId: 'act_1',
-      date: _formatDate(now),
-      status: 'done',
-      completedAt: now,
-      durationSeconds: 1800,
-    ));
-
-    return logs;
-  }
-
-  List<Achievement> _getDefaultAchievements() {
+  List<Achievement> _getEmptyAchievements() {
     return [
       Achievement(
         id: 'ach_1',
@@ -581,10 +483,8 @@ class AppState extends ChangeNotifier {
         description: 'Complete 7-day streak of daily activities',
         icon: 'local_fire_department',
         categoryColor: 'secondary',
-        isUnlocked: true,
-        unlockedAt: DateTime.now().subtract(const Duration(days: 5)),
         threshold: 7,
-        progress: 12,
+        progress: 0,
       ),
       Achievement(
         id: 'ach_2',
@@ -592,10 +492,8 @@ class AppState extends ChangeNotifier {
         description: 'Complete a quest after 9:00 PM',
         icon: 'dark_mode',
         categoryColor: 'purple',
-        isUnlocked: true,
-        unlockedAt: DateTime.now().subtract(const Duration(days: 8)),
         threshold: 1,
-        progress: 1,
+        progress: 0,
       ),
       Achievement(
         id: 'ach_3',
@@ -603,10 +501,8 @@ class AppState extends ChangeNotifier {
         description: 'Cheer on 3 friends after their quests',
         icon: 'group',
         categoryColor: 'tertiary',
-        isUnlocked: true,
-        unlockedAt: DateTime.now().subtract(const Duration(days: 2)),
         threshold: 3,
-        progress: 3,
+        progress: 0,
       ),
       Achievement(
         id: 'ach_4',
@@ -614,10 +510,8 @@ class AppState extends ChangeNotifier {
         description: 'Complete a quest before 8:00 AM',
         icon: 'wb_sunny',
         categoryColor: 'primary',
-        isUnlocked: true,
-        unlockedAt: DateTime.now().subtract(const Duration(days: 4)),
         threshold: 1,
-        progress: 1,
+        progress: 0,
       ),
       Achievement(
         id: 'ach_5',
@@ -625,10 +519,8 @@ class AppState extends ChangeNotifier {
         description: 'Complete all daily quests in a single day',
         icon: 'star',
         categoryColor: 'secondary',
-        isUnlocked: true,
-        unlockedAt: DateTime.now().subtract(const Duration(days: 12)),
         threshold: 1,
-        progress: 1,
+        progress: 0,
       ),
       Achievement(
         id: 'ach_6',
@@ -636,9 +528,8 @@ class AppState extends ChangeNotifier {
         description: 'Complete 15 daily quests this month',
         icon: 'trophy',
         categoryColor: 'grey',
-        isUnlocked: false,
         threshold: 15,
-        progress: 12,
+        progress: 0,
       ),
       Achievement(
         id: 'ach_7',
@@ -646,9 +537,8 @@ class AppState extends ChangeNotifier {
         description: 'Reach a streak of 50 days in any activity',
         icon: 'military_tech',
         categoryColor: 'grey',
-        isUnlocked: false,
         threshold: 50,
-        progress: 42,
+        progress: 0,
       ),
     ];
   }
