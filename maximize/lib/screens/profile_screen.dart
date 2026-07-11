@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/chunky_colors.dart';
 import '../widgets/chunky_card.dart';
 import '../widgets/chunky_button.dart';
@@ -18,6 +19,12 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final displayName = user?.displayName != null && user!.displayName!.isNotEmpty 
+        ? user.displayName! 
+        : 'Adventurer';
+    final photoUrl = user?.photoURL;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -35,6 +42,12 @@ class ProfileScreen extends StatelessWidget {
                     color: Colors.black,
                     shape: BoxShape.circle,
                     border: Border.all(color: ChunkyColors.primary, width: 3.0),
+                    image: photoUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(photoUrl),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                     boxShadow: [
                       BoxShadow(
                         color: ChunkyColors.primary.withValues(alpha: 0.3),
@@ -43,13 +56,15 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Icon(
-                      Icons.local_fire_department,
-                      color: ChunkyColors.primary,
-                      size: 40.0,
-                    ),
-                  ),
+                  child: photoUrl == null
+                      ? Center(
+                          child: Icon(
+                            Icons.local_fire_department,
+                            color: ChunkyColors.primary,
+                            size: 40.0,
+                          ),
+                        )
+                      : null,
                 ),
                 SizedBox(width: 20.0),
                 Expanded(
@@ -57,7 +72,7 @@ class ProfileScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Adventurer',
+                        displayName,
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w900,
                           fontSize: 24.0,
@@ -102,10 +117,12 @@ class ProfileScreen extends StatelessWidget {
           ),
           _buildMenuCard(
             context,
-            title: 'Backup & Sync',
-            icon: Icons.cloud_sync,
-            color: ChunkyColors.onSurface,
-            onTap: () {},
+            title: 'Remove Info',
+            icon: Icons.delete_forever,
+            color: ChunkyColors.errorRed,
+            onTap: () async {
+              await state.clearAllData();
+            },
           ),
 
           SizedBox(height: 32.0),
