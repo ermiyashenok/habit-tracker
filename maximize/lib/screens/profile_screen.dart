@@ -121,7 +121,50 @@ class ProfileScreen extends StatelessWidget {
             icon: Icons.delete_forever,
             color: ChunkyColors.errorRed,
             onTap: () async {
-              await state.clearAllData();
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    backgroundColor: ChunkyColors.surface,
+                    title: Text(
+                      'Delete Data?',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.bold,
+                        color: ChunkyColors.onSurface,
+                      ),
+                    ),
+                    content: Text(
+                      'This will permanently delete all your quests, streaks, and progress. This action cannot be undone.',
+                      style: TextStyle(
+                        fontFamily: 'BeVietnamPro',
+                        color: ChunkyColors.onSurfaceVariant,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text('Cancel', style: TextStyle(color: ChunkyColors.primary, fontWeight: FontWeight.bold)),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text('Delete', style: TextStyle(color: ChunkyColors.errorRed, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  );
+                }
+              );
+              
+              if (confirm == true) {
+                await state.clearAllData();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('All data has been wiped clean.'),
+                      backgroundColor: ChunkyColors.errorRed,
+                    ),
+                  );
+                }
+              }
             },
           ),
 
@@ -130,7 +173,9 @@ class ProfileScreen extends StatelessWidget {
             backgroundColor: ChunkyColors.surfaceContainerHigh,
             borderColor: ChunkyColors.errorRed,
             shadowColor: ChunkyColors.errorRed,
-            onTap: () {
+            onTap: () async {
+              await FirebaseAuth.instance.signOut();
+              if (!context.mounted) return;
               Navigator.of(context, rootNavigator: true).pushReplacement(
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
               );
