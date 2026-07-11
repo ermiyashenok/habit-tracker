@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "980794846647",
+    "project_id": "maximize-b376c",
+    "storage_bucket": "maximize-b376c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:980794846647:android:7319fcda04d1e7664b0c32",
+        "android_client_info": {
+          "package_name": "com.example.maximize"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC89BtP1Kch89me5jz9ZaV0eOgHPa0FTGQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
