@@ -14,6 +14,7 @@ import 'screens/quest_detail_screen.dart';
 import 'screens/login_screen.dart';
 import 'models/activity.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'services/notification_service.dart';
 
@@ -61,7 +62,7 @@ class QuestLogApp extends StatelessWidget {
         textTheme: GoogleFonts.plusJakartaSansTextTheme(),
         useMaterial3: true,
       ),
-      home: LoginScreen(),
+      home: FirebaseAuth.instance.currentUser != null ? const AppShell() : const LoginScreen(),
     );
   }
 }
