@@ -13,12 +13,25 @@ import 'screens/new_quest_screen.dart';
 import 'screens/quest_detail_screen.dart';
 import 'screens/login_screen.dart';
 import 'models/activity.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print("Firebase initialized successfully");
+  } catch (e) {
+    debugPrint("Firebase init error: $e");
+    // If initialization fails, we might want to show an error or continue?
+    // For now, we'll continue, but the app might not work properly.
+    // In a real app, we should handle this more gracefully.
+  }
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
