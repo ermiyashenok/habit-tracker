@@ -94,14 +94,27 @@ class StatsScreen extends StatelessWidget {
                         width: 2.0,
                       ),
                     ),
-                    child: Text(
-                      'Level ${state.level} Warrior',
-                      style: TextStyle(
-                        fontFamily: 'BeVietnamPro',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12.0,
-                        color: ChunkyColors.primary,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Level ${state.level} Warrior',
+                          style: TextStyle(
+                            fontFamily: 'BeVietnamPro',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.0,
+                            color: ChunkyColors.primary,
+                          ),
+                        ),
+                        Text(
+                          '${state.nextLevelXpRequired - state.currentLevelXp} XP to Level ${state.level + 1}',
+                          style: TextStyle(
+                            fontFamily: 'BeVietnamPro',
+                            fontSize: 9.0,
+                            color: ChunkyColors.primary.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

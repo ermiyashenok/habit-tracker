@@ -123,7 +123,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
       category: _selectedCategory,
       time: '$hourStr:$minStr',
       repeatPattern: 'daily',
-      xpReward: _xpReward,
+      xpReward: 25,
       notes: _notesController.text.trim(),
       createdAt: DateTime.now(),
     );
@@ -342,19 +342,14 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                           ),
                         ),
                         ChunkyCard(
-                          onTap: () {
-                            setState(() {
-                              _xpReward = _xpReward == 100 ? 150 : (_xpReward == 150 ? 200 : 100);
-                            });
-                          },
                           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.stars, color: ChunkyColors.onSurface),
+                              Icon(Icons.stars, color: ChunkyColors.primary),
                               SizedBox(width: 8.0),
                               Text(
-                                '$_xpReward XP',
+                                '25 XP',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 15.0,

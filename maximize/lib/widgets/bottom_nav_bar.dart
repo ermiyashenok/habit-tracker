@@ -23,7 +23,7 @@ class BottomNavBar extends StatelessWidget {
     ];
     
     final icons = [
-      Icons.bolt,
+      Icons.local_fire_department,
       Icons.calendar_month,
       Icons.leaderboard,
       Icons.group,

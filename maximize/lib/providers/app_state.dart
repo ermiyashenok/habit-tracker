@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -60,6 +61,22 @@ class AppState extends ChangeNotifier {
   int get userBestStreak => _userBestStreak;
   int _level = 1;
   int get level => _level;
+  
+  int get currentLevelXp {
+    int lvl = 1;
+    int expAccumulated = 0;
+    while (lvl < _level) {
+      expAccumulated += ((100 * math.pow(lvl, 1.5)) / 10).round() * 10;
+      lvl++;
+    }
+    return _userXp - expAccumulated;
+  }
+
+  int get nextLevelXpRequired {
+    if (_level >= 50) return 0;
+    return ((100 * math.pow(_level, 1.5)) / 10).round() * 10;
+  }
+
   int _totalEarnedFreezes = 2; // Starts with 2 freezes
   int _userFreezesRemaining = 2;
   int get userFreezesRemaining => _userFreezesRemaining;
@@ -111,6 +128,7 @@ class AppState extends ChangeNotifier {
         } else {
           _achievements = _getEmptyAchievements();
         }
+        _syncAchievements();
 
         _userXp = data['userXp'] ?? 0;
         _userBestStreak = data['userBestStreak'] ?? 0;
@@ -326,19 +344,89 @@ class AppState extends ChangeNotifier {
     final activity = _activities.firstWhere((a) => a.id == activityId);
     _userXp += activity.xpReward;
     _recalculateLevel();
+
+    // Check special badges
+    final now = DateTime.now();
+    _updateAchievementProgress('ach_kickstart', 1);
+    
+    if (now.hour < 8) {
+      _updateAchievementProgress('ach_early_bird', 1);
+    }
+    if (now.hour >= 21) {
+      _updateAchievementProgress('ach_night_owl', 1);
+    }
+    
+    final todayStr = _getTodayString();
+    int completedToday = _dailyLogs.where((l) => l.date == todayStr && l.status == 'done').length;
+    _updateAchievementProgress('ach_apex_day', completedToday);
   }
 
   void _recalculateLevel() {
-    // Basic level calculation: level 1 = 0 XP, each level is 200 XP
-    int newLevel = (_userXp / 200).floor();
-    if (newLevel < 1) newLevel = 1;
+    int newLevel = 1;
+    int expAccumulated = 0;
+    
+    while (newLevel < 50) {
+      int expNeededForNext = ((100 * math.pow(newLevel, 1.5)) / 10).round() * 10;
+      if (_userXp >= expAccumulated + expNeededForNext) {
+        expAccumulated += expNeededForNext;
+        newLevel++;
+      } else {
+        break;
+      }
+    }
     
     if (newLevel > _level) {
       // Reward 1 streak freeze per level up
       _totalEarnedFreezes += (newLevel - _level);
+      _checkLevelBadges(newLevel);
     }
     
     _level = newLevel;
+  }
+
+  void _checkLevelBadges(int currentLevel) {
+    _updateAchievementProgress('ach_novice', currentLevel);
+    _updateAchievementProgress('ach_initiate', currentLevel);
+    _updateAchievementProgress('ach_acolyte', currentLevel);
+    _updateAchievementProgress('ach_stalwart', currentLevel);
+    _updateAchievementProgress('ach_vanguard', currentLevel);
+    _updateAchievementProgress('ach_master', currentLevel);
+  }
+
+  void _checkStreakBadges(int maxStreak) {
+    _updateAchievementProgress('ach_spark', maxStreak);
+    _updateAchievementProgress('ach_routine', maxStreak);
+    _updateAchievementProgress('ach_habit', maxStreak);
+    _updateAchievementProgress('ach_lunar', maxStreak);
+    _updateAchievementProgress('ach_fire', maxStreak);
+    _updateAchievementProgress('ach_centurion', maxStreak);
+    _updateAchievementProgress('ach_monumental', maxStreak);
+  }
+
+  void _updateAchievementProgress(String achievementId, int newProgress) {
+    final index = _achievements.indexWhere((a) => a.id == achievementId);
+    if (index != -1) {
+      final ach = _achievements[index];
+      if (!ach.isUnlocked) {
+        final progress = math.min(newProgress, ach.threshold).toInt();
+        bool newlyUnlocked = false;
+        DateTime? unlockedAt;
+        if (progress >= ach.threshold) {
+          newlyUnlocked = true;
+          unlockedAt = DateTime.now();
+        }
+        _achievements[index] = ach.copyWith(
+          progress: progress,
+          isUnlocked: newlyUnlocked,
+          unlockedAt: unlockedAt,
+        );
+        
+        if (newlyUnlocked) {
+          _userXp += 50;
+          _recalculateLevel();
+        }
+      }
+    }
   }
 
   void _recalculateStreaks() {
@@ -391,6 +479,14 @@ class AppState extends ChangeNotifier {
     if (_userStreak > _userBestStreak) {
       _userBestStreak = _userStreak;
     }
+
+    int highestActivityStreak = 0;
+    for (var a in _activities) {
+      final streak = getActivityBestStreak(a.id);
+      if (streak > highestActivityStreak) highestActivityStreak = streak;
+    }
+    int overallBest = math.max(_userBestStreak, highestActivityStreak).toInt();
+    _checkStreakBadges(overallBest);
   }
 
   // Helpers
@@ -475,71 +571,40 @@ class AppState extends ChangeNotifier {
     return _dailyLogs.where((l) => l.activityId == activityId && l.status == 'done').length;
   }
 
+  void _syncAchievements() {
+    final defaultAchievements = _getEmptyAchievements();
+    for (var defaultAch in defaultAchievements) {
+      final existingIndex = _achievements.indexWhere((a) => a.id == defaultAch.id);
+      if (existingIndex == -1) {
+        _achievements.add(defaultAch);
+      }
+    }
+  }
+
   List<Achievement> _getEmptyAchievements() {
     return [
-      Achievement(
-        id: 'ach_1',
-        title: 'Firestarter',
-        description: 'Complete 7-day streak of daily activities',
-        icon: 'local_fire_department',
-        categoryColor: 'secondary',
-        threshold: 7,
-        progress: 0,
-      ),
-      Achievement(
-        id: 'ach_2',
-        title: 'Night Owl',
-        description: 'Complete a quest after 9:00 PM',
-        icon: 'dark_mode',
-        categoryColor: 'purple',
-        threshold: 1,
-        progress: 0,
-      ),
-      Achievement(
-        id: 'ach_3',
-        title: 'Socialite',
-        description: 'Cheer on 3 friends after their quests',
-        icon: 'group',
-        categoryColor: 'tertiary',
-        threshold: 3,
-        progress: 0,
-      ),
-      Achievement(
-        id: 'ach_4',
-        title: 'Early Bird',
-        description: 'Complete a quest before 8:00 AM',
-        icon: 'wb_sunny',
-        categoryColor: 'primary',
-        threshold: 1,
-        progress: 0,
-      ),
-      Achievement(
-        id: 'ach_5',
-        title: 'Jackpot',
-        description: 'Complete all daily quests in a single day',
-        icon: 'star',
-        categoryColor: 'secondary',
-        threshold: 1,
-        progress: 0,
-      ),
-      Achievement(
-        id: 'ach_6',
-        title: 'Consistency King',
-        description: 'Complete 15 daily quests this month',
-        icon: 'trophy',
-        categoryColor: 'grey',
-        threshold: 15,
-        progress: 0,
-      ),
-      Achievement(
-        id: 'ach_7',
-        title: 'The Finisher',
-        description: 'Reach a streak of 50 days in any activity',
-        icon: 'military_tech',
-        categoryColor: 'grey',
-        threshold: 50,
-        progress: 0,
-      ),
+      // Tier 1: Streak Milestones
+      Achievement(id: 'ach_spark', title: 'Spark', description: 'Maintain any habit streak for 3 consecutive days.', icon: 'bolt', categoryColor: 'secondary', threshold: 3, progress: 0),
+      Achievement(id: 'ach_routine', title: 'Routine Builder', description: 'Maintain any habit streak for 7 consecutive days.', icon: 'eco', categoryColor: 'primary', threshold: 7, progress: 0),
+      Achievement(id: 'ach_habit', title: 'Habit Formed', description: 'Reach a 21-day streak.', icon: 'lock', categoryColor: 'tertiary', threshold: 21, progress: 0),
+      Achievement(id: 'ach_lunar', title: 'Lunar Cycle', description: 'Complete a 30-day streak on a single habit.', icon: 'nightlight_round', categoryColor: 'purple', threshold: 30, progress: 0),
+      Achievement(id: 'ach_fire', title: 'On Fire', description: 'Reach a 50-day streak on a single habit.', icon: 'local_fire_department', categoryColor: 'secondary', threshold: 50, progress: 0),
+      Achievement(id: 'ach_centurion', title: 'Centurion', description: 'Hit an incredible 100-day streak.', icon: 'workspace_premium', categoryColor: 'grey', threshold: 100, progress: 0),
+      Achievement(id: 'ach_monumental', title: 'Monumental', description: 'Reach a massive 365-day streak.', icon: 'account_balance', categoryColor: 'primary', threshold: 365, progress: 0),
+      
+      // Tier 2: Level Progression
+      Achievement(id: 'ach_novice', title: 'Novice', description: 'Reach Level 5.', icon: 'spa', categoryColor: 'grey', threshold: 5, progress: 0),
+      Achievement(id: 'ach_initiate', title: 'Initiate', description: 'Reach Level 10.', icon: 'school', categoryColor: 'primary', threshold: 10, progress: 0),
+      Achievement(id: 'ach_acolyte', title: 'Acolyte', description: 'Reach Level 20.', icon: 'auto_awesome', categoryColor: 'secondary', threshold: 20, progress: 0),
+      Achievement(id: 'ach_stalwart', title: 'Stalwart', description: 'Reach Level 30.', icon: 'shield', categoryColor: 'tertiary', threshold: 30, progress: 0),
+      Achievement(id: 'ach_vanguard', title: 'Vanguard', description: 'Reach Level 40.', icon: 'military_tech', categoryColor: 'purple', threshold: 40, progress: 0),
+      Achievement(id: 'ach_master', title: 'Master of Self', description: 'Reach Level 50.', icon: 'emoji_events', categoryColor: 'secondary', threshold: 50, progress: 0),
+
+      // Tier 3 & 4: Daily Activity & Specialized
+      Achievement(id: 'ach_kickstart', title: 'Kickstart', description: 'Complete your first habit of the day.', icon: 'rocket_launch', categoryColor: 'primary', threshold: 1, progress: 0),
+      Achievement(id: 'ach_early_bird', title: 'Early Bird', description: 'Complete a habit before 8:00 AM.', icon: 'wb_sunny', categoryColor: 'secondary', threshold: 1, progress: 0),
+      Achievement(id: 'ach_night_owl', title: 'Night Owl', description: 'Complete a habit after 9:00 PM.', icon: 'dark_mode', categoryColor: 'purple', threshold: 1, progress: 0),
+      Achievement(id: 'ach_apex_day', title: 'Apex Day', description: 'Complete 8 or more habits in a single day.', icon: 'landscape', categoryColor: 'tertiary', threshold: 8, progress: 0),
     ];
   }
 

@@ -89,6 +89,25 @@ class ProfileScreen extends StatelessWidget {
                           color: ChunkyColors.primary,
                         ),
                       ),
+                      SizedBox(height: 8.0),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4.0),
+                        child: LinearProgressIndicator(
+                          value: state.nextLevelXpRequired > 0 ? state.currentLevelXp / state.nextLevelXpRequired : 1.0,
+                          minHeight: 8.0,
+                          backgroundColor: ChunkyColors.surfaceContainerHigh,
+                          color: ChunkyColors.primary,
+                        ),
+                      ),
+                      SizedBox(height: 4.0),
+                      Text(
+                        '${state.currentLevelXp} / ${state.nextLevelXpRequired} XP to Level ${state.level + 1}',
+                        style: TextStyle(
+                          fontFamily: 'BeVietnamPro',
+                          fontSize: 10.0,
+                          color: ChunkyColors.outline,
+                        ),
+                      ),
                     ],
                   ),
                 ),

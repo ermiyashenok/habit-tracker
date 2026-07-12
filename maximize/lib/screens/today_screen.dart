@@ -180,21 +180,28 @@ class _TodayScreenState extends State<TodayScreen> {
                           ),
                         ),
                         SizedBox(height: 8.0),
-                        if (isPast || (isToday && completionPercent == 100))
-                          Icon(Icons.local_fire_department, color: ChunkyColors.primary, size: 28)
-                        else
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: ChunkyColors.outlineVariant,
-                                style: BorderStyle.solid,
-                                width: 2,
+                        Builder(builder: (context) {
+                          final dateForDay = today.add(Duration(days: index - (today.weekday - 1)));
+                          final dateStr = '${dateForDay.year.toString().padLeft(4, '0')}-${dateForDay.month.toString().padLeft(2, '0')}-${dateForDay.day.toString().padLeft(2, '0')}';
+                          final hasDoneTask = logs.any((l) => l.date == dateStr && l.status == 'done');
+                          
+                          if (hasDoneTask) {
+                            return Icon(Icons.local_fire_department, color: ChunkyColors.primary, size: 28);
+                          } else {
+                            return Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: ChunkyColors.outlineVariant,
+                                  style: BorderStyle.solid,
+                                  width: 2,
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          }
+                        }),
                       ],
                     );
                   }),

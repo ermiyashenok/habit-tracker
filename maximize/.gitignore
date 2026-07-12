@@ -12,6 +12,7 @@
 .swiftpm/
 migrate_working_dir/
 push_commits.ps1
+habit_tracker_gamification_blueprint.md
 
 # IntelliJ related
 *.iml
