@@ -400,7 +400,114 @@ class _PlannerScreenState extends State<PlannerScreen> {
           icon: Icons.mediation,
           color: ChunkyColors.onSurface,
         ),
-        SizedBox(height: 32.0),
+        const SizedBox(height: 24.0),
+        _buildPausedQuestsSection(),
+      ],
+    );
+  }
+
+  Widget _buildPausedQuestsSection() {
+    final pausedQuests = widget.state.activities.where((a) => !a.isActive).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Paused Quests',
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w800,
+            fontSize: 20.0,
+            color: ChunkyColors.onSurface,
+          ),
+        ),
+        const SizedBox(height: 12.0),
+        if (pausedQuests.isEmpty)
+          ChunkyCard(
+            borderColor: ChunkyColors.surfaceContainerHighest,
+            child: const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'No paused quests. Paused quests will appear here to resume at any time.',
+                  style: TextStyle(fontFamily: 'BeVietnamPro', color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: pausedQuests.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12.0),
+            itemBuilder: (context, index) {
+              final quest = pausedQuests[index];
+              return ChunkyCard(
+                borderColor: ChunkyColors.surfaceContainerHighest,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: ChunkyColors.surfaceContainerLow,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.pause, color: ChunkyColors.outline),
+                    ),
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            quest.name,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15.0,
+                              color: ChunkyColors.onSurface,
+                            ),
+                          ),
+                          Text(
+                            '${quest.category.toUpperCase()} • ${quest.durationMinutes != null ? "${quest.durationMinutes} min timer" : "No timer"}',
+                            style: TextStyle(
+                              fontFamily: 'BeVietnamPro',
+                              color: ChunkyColors.outline,
+                              fontSize: 12.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ChunkyButton(
+                      backgroundColor: ChunkyColors.primaryContainer,
+                      shadowColor: ChunkyColors.primary,
+                      shadowHeight: 2,
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      onTap: () {
+                        widget.state.toggleActivityPause(quest.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${quest.name} has been resumed!'),
+                            backgroundColor: ChunkyColors.primary,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'RESUME',
+                        style: TextStyle(
+                          fontFamily: 'BeVietnamPro',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12.0,
+                          color: ChunkyColors.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
       ],
     );
   }
