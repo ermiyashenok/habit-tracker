@@ -9,6 +9,7 @@ class Activity {
   final DateTime createdAt;
   final int xpReward;
   final String notes;
+  final int? durationMinutes;
 
   Activity({
     required this.id,
@@ -21,6 +22,7 @@ class Activity {
     required this.createdAt,
     this.xpReward = 100,
     this.notes = '',
+    this.durationMinutes,
   });
 
   Activity copyWith({
@@ -34,6 +36,7 @@ class Activity {
     DateTime? createdAt,
     int? xpReward,
     String? notes,
+    int? durationMinutes,
   }) {
     return Activity(
       id: id ?? this.id,
@@ -46,6 +49,7 @@ class Activity {
       createdAt: createdAt ?? this.createdAt,
       xpReward: xpReward ?? this.xpReward,
       notes: notes ?? this.notes,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
     );
   }
 
@@ -61,6 +65,7 @@ class Activity {
       'createdAt': createdAt.toIso8601String(),
       'xpReward': xpReward,
       'notes': notes,
+      'durationMinutes': durationMinutes,
     };
   }
 
@@ -76,6 +81,7 @@ class Activity {
       createdAt: DateTime.parse(json['createdAt']),
       xpReward: json['xpReward'] ?? 100,
       notes: json['notes'] ?? '',
+      durationMinutes: json['durationMinutes'],
     );
   }
 }
