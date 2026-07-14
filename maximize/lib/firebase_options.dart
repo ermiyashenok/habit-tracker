@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'firebase_secrets.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -44,7 +45,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDK51XXUtNb5VHVWB1gMAbS5YZVe95MuuY',
+    apiKey: FirebaseSecrets.webApiKey,
     appId: '1:980794846647:web:7e1efed69075039e4b0c32',
     messagingSenderId: '980794846647',
     projectId: 'maximize-b376c',
@@ -54,7 +55,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC89BtP1Kch89me5jz9ZaV0eOgHPa0FTGQ',
+    apiKey: FirebaseSecrets.androidApiKey,
     appId: '1:980794846647:android:7319fcda04d1e7664b0c32',
     messagingSenderId: '980794846647',
     projectId: 'maximize-b376c',
@@ -62,7 +63,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDYhZ7chHl3xX01_FwErVY5OnsaZbG9HUE',
+    apiKey: FirebaseSecrets.iosApiKey,
     appId: '1:980794846647:ios:74cc565ef652674b4b0c32',
     messagingSenderId: '980794846647',
     projectId: 'maximize-b376c',
@@ -71,7 +72,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDYhZ7chHl3xX01_FwErVY5OnsaZbG9HUE',
+    apiKey: FirebaseSecrets.iosApiKey,
     appId: '1:980794846647:ios:74cc565ef652674b4b0c32',
     messagingSenderId: '980794846647',
     projectId: 'maximize-b376c',
