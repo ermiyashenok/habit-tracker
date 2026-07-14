@@ -353,9 +353,23 @@ class _TodayScreenState extends State<TodayScreen> {
                     children: [
                       // Checklist bubble
                       GestureDetector(
-                        onTap: () => widget.state.toggleTask(act.id, todayStr),
+                        onTap: () {
+                          if (act.durationMinutes != null && act.durationMinutes! > 0) {
+                            if (!isDone) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('This quest requires completing the ${act.durationMinutes}-minute timer!'),
+                                  backgroundColor: ChunkyColors.primary,
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                              return;
+                            }
+                          }
+                          widget.state.toggleTask(act.id, todayStr);
+                        },
                         child: AnimatedContainer(
-                          duration: Duration(milliseconds: 150),
+                          duration: const Duration(milliseconds: 150),
                           width: 36.0,
                           height: 36.0,
                           decoration: BoxDecoration(
@@ -367,11 +381,23 @@ class _TodayScreenState extends State<TodayScreen> {
                             ),
                           ),
                           child: Center(
-                            child: Icon(
-                              Icons.check,
-                              color: isDone ? ChunkyColors.onSurface : Colors.transparent,
-                              size: 20.0,
-                            ),
+                            child: isDone
+                                ? Icon(
+                                    Icons.check,
+                                    color: ChunkyColors.onSurface,
+                                    size: 20.0,
+                                  )
+                                : (act.durationMinutes != null && act.durationMinutes! > 0)
+                                    ? Icon(
+                                        Icons.hourglass_empty,
+                                        color: ChunkyColors.outline,
+                                        size: 16.0,
+                                      )
+                                    : const Icon(
+                                        Icons.check,
+                                        color: Colors.transparent,
+                                        size: 20.0,
+                                      ),
                           ),
                         ),
                       ),
@@ -392,13 +418,21 @@ class _TodayScreenState extends State<TodayScreen> {
                               ),
                             ),
                             SizedBox(height: 4.0),
-                            Text(
-                              '${act.category.toUpperCase()} • ${act.time ?? "Anytime"}${accumulatedSeconds > 0 ? " • ${_formatDuration(accumulatedSeconds)}" : ""}',
-                              style: TextStyle(
-                                fontFamily: 'BeVietnamPro',
-                                fontSize: 12.0,
-                                color: ChunkyColors.onSurfaceVariant,
-                              ),
+                            Builder(
+                              builder: (context) {
+                                String timerText = '';
+                                if (act.durationMinutes != null && act.durationMinutes! > 0) {
+                                  timerText = ' • ⏳ ${act.durationMinutes} min req';
+                                }
+                                return Text(
+                                  '${act.category.toUpperCase()} • ${act.time ?? "Anytime"}$timerText${accumulatedSeconds > 0 ? " • Current: ${_formatDuration(accumulatedSeconds)}" : ""}',
+                                  style: TextStyle(
+                                    fontFamily: 'BeVietnamPro',
+                                    fontSize: 12.0,
+                                    color: ChunkyColors.onSurfaceVariant,
+                                  ),
+                                );
+                              }
                             ),
                           ],
                         ),
@@ -418,7 +452,7 @@ class _TodayScreenState extends State<TodayScreen> {
                             width: 36.0,
                             height: 36.0,
                             decoration: BoxDecoration(
-                              color: isTimerRunning ? ChunkyColors.errorRed.withValues(alpha: 0.2) : ChunkyColors.surfaceContainerLow,
+                              color: isTimerRunning ? ChunkyColors.errorRed.withOpacity(0.2) : ChunkyColors.surfaceContainerLow,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
