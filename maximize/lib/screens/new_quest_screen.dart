@@ -29,6 +29,9 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
   final List<String> _customCategories = [];
   TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 0);
   int _xpReward = 150;
+  bool _requireTimer = false;
+  int _timerHours = 0;
+  int _timerMinutes = 0;
 
   @override
   void dispose() {
@@ -42,12 +45,14 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
       context: context,
       initialTime: _selectedTime,
       builder: (context, child) {
+        final isLight = widget.state.isLightMode;
         return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
+          data: (isLight ? ThemeData.light() : ThemeData.dark()).copyWith(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: ChunkyColors.primaryContainer,
               primary: ChunkyColors.primary,
-              onPrimary: ChunkyColors.onSurface,
-              surface: ChunkyColors.onSurface,
+              onPrimary: Colors.white,
+              surface: ChunkyColors.surfaceContainerHigh,
               onSurface: ChunkyColors.onSurface,
             ),
           ),
@@ -116,6 +121,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
 
     final hourStr = _selectedTime.hour.toString().padLeft(2, '0');
     final minStr = _selectedTime.minute.toString().padLeft(2, '0');
+    final totalMinutes = _requireTimer ? (_timerHours * 60 + _timerMinutes) : 0;
 
     final newAct = Activity(
       id: 'act_${DateTime.now().millisecondsSinceEpoch}',
@@ -126,6 +132,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
       xpReward: 25,
       notes: _notesController.text.trim(),
       createdAt: DateTime.now(),
+      durationMinutes: totalMinutes > 0 ? totalMinutes : null,
     );
 
     widget.state.addActivity(newAct);
@@ -399,6 +406,80 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
               ),
               SizedBox(height: 24.0),
 
+              // Timer Requirement
+              Padding(
+                padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                child: Text(
+                  'TIMER REQUIREMENT',
+                  style: TextStyle(
+                    fontFamily: 'BeVietnamPro',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12.0,
+                    color: ChunkyColors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              ChunkyCard(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.hourglass_bottom, color: ChunkyColors.primary),
+                        SizedBox(width: 12.0),
+                        const Text(
+                          'Require timer to complete',
+                          style: TextStyle(
+                            fontFamily: 'BeVietnamPro',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87, // High contrast or ChunkyColors.onSurface
+                          ),
+                        ),
+                      ],
+                    ),
+                    Switch(
+                      value: _requireTimer,
+                      activeColor: ChunkyColors.primary,
+                      onChanged: (val) {
+                        setState(() {
+                          _requireTimer = val;
+                          if (val && _timerHours == 0 && _timerMinutes == 0) {
+                            _timerMinutes = 30; // default to 30 mins
+                          }
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              if (_requireTimer) ...[
+                const SizedBox(height: 16.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTimeCounter('HOURS', _timerHours, (val) {
+                        if (val >= 0 && val < 24) {
+                          setState(() {
+                            _timerHours = val;
+                          });
+                        }
+                      }),
+                    ),
+                    const SizedBox(width: 16.0),
+                    Expanded(
+                      child: _buildTimeCounter('MINUTES', _timerMinutes, (val) {
+                        if (val >= 0 && val < 60) {
+                          setState(() {
+                            _timerMinutes = val;
+                          });
+                        }
+                      }),
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: 24.0),
+
               // Illustration box
               Container(
                 height: 120.0,
@@ -470,7 +551,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
         });
       },
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         decoration: BoxDecoration(
           color: isSelected ? ChunkyColors.onSurface : ChunkyColors.surfaceCard,
@@ -518,6 +599,50 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTimeCounter(String label, int value, ValueChanged<int> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'BeVietnamPro',
+              fontWeight: FontWeight.bold,
+              fontSize: 12.0,
+              color: ChunkyColors.onSurfaceVariant,
+            ),
+          ),
+        ),
+        ChunkyCard(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: Icon(Icons.remove, color: ChunkyColors.onSurface),
+                onPressed: () => onChanged(value - 1),
+              ),
+              Text(
+                '$value',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18.0,
+                  color: ChunkyColors.onSurface,
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.add, color: ChunkyColors.primary),
+                onPressed: () => onChanged(value + 1),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
