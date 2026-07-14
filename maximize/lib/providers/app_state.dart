@@ -132,12 +132,20 @@ class AppState extends ChangeNotifier {
 
         _userXp = data['userXp'] ?? 0;
         _userBestStreak = data['userBestStreak'] ?? 0;
+
+        if (data['friends'] != null) {
+          final List<dynamic> jsonList = data['friends'];
+          _friends = jsonList.map((e) => Friend.fromJson(e as Map<String, dynamic>)).toList();
+        } else {
+          _friends = _getDefaultFriends();
+        }
       } else {
         _activities = [];
         _dailyLogs = [];
         _achievements = _getEmptyAchievements();
         _userXp = 0;
         _userBestStreak = 0;
+        _friends = _getDefaultFriends();
         await saveAllData();
       }
     } catch (e) {
@@ -147,9 +155,9 @@ class AppState extends ChangeNotifier {
       _achievements = _getEmptyAchievements();
       _userXp = 0;
       _userBestStreak = 0;
+      _friends = _getDefaultFriends();
     }
 
-    _friends = _getDefaultFriends();
     _recalculateStreaks();
     notifyListeners();
   }
@@ -162,6 +170,7 @@ class AppState extends ChangeNotifier {
         'achievements': _achievements.map((e) => e.toJson()).toList(),
         'userXp': _userXp,
         'userBestStreak': _userBestStreak,
+        'friends': _friends.map((e) => e.toJson()).toList(),
       }, SetOptions(merge: true));
     } catch (e) {
       if (kDebugMode) print('Error saving data to Firestore: $e');
@@ -191,6 +200,21 @@ class AppState extends ChangeNotifier {
     _timerSeconds = 0;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _timerSeconds++;
+      
+      // Check if target duration is reached
+      final activity = _activities.firstWhere((a) => a.id == activityId);
+      if (activity.durationMinutes != null && activity.durationMinutes! > 0) {
+        final todayStr = _getTodayString();
+        final logIndex = _dailyLogs.indexWhere((l) => l.activityId == activityId && l.date == todayStr);
+        final loggedSeconds = logIndex != -1 ? _dailyLogs[logIndex].durationSeconds : 0;
+        final totalSeconds = loggedSeconds + _timerSeconds;
+        
+        if (totalSeconds >= activity.durationMinutes! * 60) {
+          stopTimer(); // Stops the timer and marks as done
+          return;
+        }
+      }
+      
       notifyListeners();
     });
     notifyListeners();
@@ -215,23 +239,41 @@ class AppState extends ChangeNotifier {
   void logDuration(String activityId, int seconds) {
     final todayStr = _getTodayString();
     final logIndex = _dailyLogs.indexWhere((l) => l.activityId == activityId && l.date == todayStr);
+    final activity = _activities.firstWhere((a) => a.id == activityId);
 
     if (logIndex != -1) {
       final log = _dailyLogs[logIndex];
+      final newDuration = log.durationSeconds + seconds;
+      
+      // Determine if completed (either no timer required, or timer duration is reached)
+      final isCompleted = activity.durationMinutes == null || 
+                          activity.durationMinutes == 0 || 
+                          newDuration >= activity.durationMinutes! * 60;
+
       _dailyLogs[logIndex] = log.copyWith(
-        durationSeconds: log.durationSeconds + seconds,
-        status: 'done', // if tracking duration, mark it done
-        completedAt: log.completedAt ?? DateTime.now(),
+        durationSeconds: newDuration,
+        status: isCompleted ? 'done' : log.status,
+        completedAt: isCompleted ? (log.completedAt ?? DateTime.now()) : null,
       );
+      if (isCompleted && log.status != 'done') {
+        _awardXpForActivity(activityId);
+      }
     } else {
+      final isCompleted = activity.durationMinutes == null || 
+                          activity.durationMinutes == 0 || 
+                          seconds >= activity.durationMinutes! * 60;
+                          
       _dailyLogs.add(DailyLog(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         activityId: activityId,
         date: todayStr,
-        status: 'done',
-        completedAt: DateTime.now(),
+        status: isCompleted ? 'done' : 'missed',
+        completedAt: isCompleted ? DateTime.now() : null,
         durationSeconds: seconds,
       ));
+      if (isCompleted) {
+        _awardXpForActivity(activityId);
+      }
     }
     _recalculateStreaks();
     saveAllData();
@@ -306,6 +348,7 @@ class AppState extends ChangeNotifier {
 
   void toggleTask(String activityId, String dateStr) {
     final logIndex = _dailyLogs.indexWhere((l) => l.activityId == activityId && l.date == dateStr);
+    final activity = _activities.firstWhere((a) => a.id == activityId);
 
     if (logIndex != -1) {
       final log = _dailyLogs[logIndex];
@@ -316,7 +359,13 @@ class AppState extends ChangeNotifier {
           completedAt: null,
         );
       } else {
-        // Toggle on
+        // Toggle on (only if no timer required or timer is completed)
+        if (activity.durationMinutes != null && activity.durationMinutes! > 0) {
+          final loggedSeconds = log.durationSeconds;
+          if (loggedSeconds < activity.durationMinutes! * 60) {
+            return; // Can't complete manually
+          }
+        }
         _dailyLogs[logIndex] = log.copyWith(
           status: 'done',
           completedAt: DateTime.now(),
@@ -324,7 +373,10 @@ class AppState extends ChangeNotifier {
         _awardXpForActivity(activityId);
       }
     } else {
-      // Create new done log
+      // Create new done log (only if no timer required)
+      if (activity.durationMinutes != null && activity.durationMinutes! > 0) {
+        return; // Can't complete manually
+      }
       _dailyLogs.add(DailyLog(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         activityId: activityId,
@@ -650,5 +702,69 @@ class AppState extends ChangeNotifier {
         recentActivityTime: '5h ago',
       ),
     ];
+  }
+
+  final List<Friend> _potentialFriends = [
+    Friend(
+      id: 'pot_1',
+      name: 'Arthur Morgan',
+      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAp8r6lTIfOqEwWVY-zEsgIVc-QfRbKZefgUrBxharFsU5GzUWM50Bu7gC8OEwZc15CbA4KvfUxPmwddwGd0kI7VoiA-ubEu83Z__7RnXCYoiJnZXH6X6_sTVsV0ud5_UBclZPJ1caZZyZiXiDd_GAwKhQzSHaUqP9Ge8V1Yc1TR4j9LZjPZE89-XEpBd9ZYYXnrfbmaSMEULE4O2MCU4USGR_zR8sAlcr6xTcwtFyXxsN29zHPladcLkzwLNlSe88xIRH8HwH50VaP',
+      points: 9500,
+      streak: 12,
+      recentActivity: 'completed Ride Horse',
+      recentActivityTime: '10m ago',
+    ),
+    Friend(
+      id: 'pot_2',
+      name: 'John Marston',
+      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDWJtltf9LyNby49oR2OYbyAstu64ao2GI0yTSS8rfE2oH7HjnXlqpItpPrFzQct_hnnK8d4Y9z5TEeJBdBYGdUwDMpQYyPDUCD6B_X9M26Cqn2pRLlIMRytL_6iu9i-7Uz2MwpoomeFwGOVv9Yv6JYh-xD5f9n5SlHfhz01o4f0JoFbNQfsmoUbG0C6AzaxBUBPcMLeQpjlqOuXom7qzw3hzl4zl2368619Wg1hpJN01TLeyatlznd23K2bp1h87flCQut1hiTGzlQ',
+      points: 7200,
+      streak: 8,
+      recentActivity: 'completed Target Practice',
+      recentActivityTime: '1h ago',
+    ),
+    Friend(
+      id: 'pot_3',
+      name: 'Sadie Adler',
+      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8woGpjJatAxyCgA2o9DswLyh-rHj_VhmTxnmdG1dR-HVIKUoxEZdkJH3AzU6TsOPPbPz9ZAy3NEQoqWKlWI52e4pwSt0NLyRKRp67crGlnTuisL62mScDU-MUGTkyDTOgKdhbxuf69dcQJR0VkUjpc9Rgspci9feRXWxzHNQYDVbJkcfZiZWxhauGsBZ9tj4Y69acj3XfOJn7Z7qMtn0kXjKimOy5YUfNwisFR1Dc6NvKEuLKva8NoOYuiKIx8AollxtQIbFCjpju',
+      points: 11000,
+      streak: 22,
+      recentActivity: 'completed Bounty Hunt',
+      recentActivityTime: '5m ago',
+    ),
+    Friend(
+      id: 'pot_4',
+      name: 'Charles Smith',
+      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAp8r6lTIfOqEwWVY-zEsgIVc-QfRbKZefgUrBxharFsU5GzUWM50Bu7gC8OEwZc15CbA4KvfUxPmwddwGd0kI7VoiA-ubEu83Z__7RnXCYoiJnZXH6X6_sTVsV0ud5_UBclZPJ1caZZyZiXiDd_GAwKhQzSHaUqP9Ge8V1Yc1TR4j9LZjPZE89-XEpBd9ZYYXnrfbmaSMEULE4O2MCU4USGR_zR8sAlcr6xTcwtFyXxsN29zHPladcLkzwLNlSe88xIRH8HwH50VaP',
+      points: 8800,
+      streak: 18,
+      recentActivity: 'completed Tracking & Hunting',
+      recentActivityTime: '3h ago',
+    ),
+    Friend(
+      id: 'pot_5',
+      name: 'Dutch van der Linde',
+      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuACEZ1WBKs4GvsBmzcVy6P3DDYG7L4JLGmM0y-Cm6Xp5lQa3jQ_mxs2XU7o7a1cLaq04a65jDuyWx6ortg5RqP9A8EjHJDFh5oocsu7Qn7-MFMXxhC26tVyIz9wWk4rq-Py1a9XsyIyXmxpOUhKIyQM44KyV36Iuxwhuh0uR0ddoThFnibsOQTAE2EdRvcE3yuolsFVCiP_Wqkp4LTjSgL3GpSzOrSHK4eP0gkkv6XT5xoMXW6CqRhK-EahuLdTQTLMtw7GPEfP4e7S',
+      points: 15000,
+      streak: 50,
+      recentActivity: 'planning a new heist',
+      recentActivityTime: '2m ago',
+    ),
+  ];
+
+  List<Friend> get potentialFriends => _potentialFriends.where((p) => !_friends.any((f) => f.id == p.id)).toList();
+
+  void addFriend(Friend friend) {
+    if (!_friends.any((f) => f.id == friend.id)) {
+      _friends.add(friend);
+      saveAllData();
+      notifyListeners();
+    }
+  }
+
+  void removeFriend(String id) {
+    _friends.removeWhere((f) => f.id == id);
+    saveAllData();
+    notifyListeners();
   }
 }
