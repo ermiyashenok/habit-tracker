@@ -228,6 +228,22 @@ class QuestDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (activity.durationMinutes != null && activity.durationMinutes! > 0) ...[
+                    SizedBox(height: 8.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Timer Requirement:',
+                          style: TextStyle(fontFamily: 'BeVietnamPro', color: ChunkyColors.outline),
+                        ),
+                        Text(
+                          '${activity.durationMinutes} minutes',
+                          style: TextStyle(fontFamily: 'BeVietnamPro', fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -266,14 +282,13 @@ class QuestDetailScreen extends StatelessWidget {
               shadowColor: ChunkyColors.surfaceContainerHighest,
               onTap: () {
                 // Pause activity
-                final updated = activity.copyWith(isActive: !activity.isActive);
-                state.updateActivity(updated);
+                state.toggleActivityPause(activity.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: ChunkyColors.primaryContainer,
                     content: Text(
-                      activity.isActive ? 'Quest reminders paused.' : 'Quest reminders enabled!',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      activity.isActive ? 'Quest paused.' : 'Quest resumed!',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 );
