@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/activity.dart';
@@ -61,6 +59,26 @@ class AppState extends ChangeNotifier {
   int get userBestStreak => _userBestStreak;
   int _level = 1;
   int get level => _level;
+
+  bool _showLevelUpDialog = false;
+  bool get showLevelUpDialog => _showLevelUpDialog;
+  int _levelUpTo = 1;
+  int get levelUpTo => _levelUpTo;
+
+  void dismissLevelUpDialog() {
+    _showLevelUpDialog = false;
+  }
+
+  bool _showMissionCompleteCelebration = false;
+  bool get showMissionCompleteCelebration => _showMissionCompleteCelebration;
+  String _missionCompleteName = '';
+  String get missionCompleteName => _missionCompleteName;
+  int _missionCompleteXp = 0;
+  int get missionCompleteXp => _missionCompleteXp;
+
+  void dismissMissionCompleteCelebration() {
+    _showMissionCompleteCelebration = false;
+  }
   
   int get currentLevelXp {
     int lvl = 1;
@@ -90,8 +108,11 @@ class AppState extends ChangeNotifier {
   }
 
   AppState() {
-    FirebaseAuth.instance.authStateChanges().listen((user) {
-      _loadInitialData();
+    FirebaseAuth.instance.authStateChanges().listen((user) async {
+      await _loadInitialData();
+      if (user != null) {
+        await _syncPublicProfile();
+      }
     });
   }
 
@@ -137,7 +158,7 @@ class AppState extends ChangeNotifier {
           final List<dynamic> jsonList = data['friends'];
           _friends = jsonList.map((e) => Friend.fromJson(e as Map<String, dynamic>)).toList();
         } else {
-          _friends = _getDefaultFriends();
+          _friends = [];
         }
       } else {
         _activities = [];
@@ -145,7 +166,7 @@ class AppState extends ChangeNotifier {
         _achievements = _getEmptyAchievements();
         _userXp = 0;
         _userBestStreak = 0;
-        _friends = _getDefaultFriends();
+        _friends = [];
         await saveAllData();
       }
     } catch (e) {
@@ -155,7 +176,7 @@ class AppState extends ChangeNotifier {
       _achievements = _getEmptyAchievements();
       _userXp = 0;
       _userBestStreak = 0;
-      _friends = _getDefaultFriends();
+      _friends = [];
     }
 
     _recalculateStreaks();
@@ -172,8 +193,48 @@ class AppState extends ChangeNotifier {
         'userBestStreak': _userBestStreak,
         'friends': _friends.map((e) => e.toJson()).toList(),
       }, SetOptions(merge: true));
+      // Sync public profile so other users can find/view this user
+      await _syncPublicProfile();
     } catch (e) {
       if (kDebugMode) print('Error saving data to Firestore: $e');
+    }
+  }
+
+  Future<void> _syncPublicProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final displayName = user.displayName?.isNotEmpty == true ? user.displayName! : 'Adventurer';
+      final email = user.email ?? '';
+
+      List<String> generateSearchTerms(String name, String email) {
+        final Set<String> terms = {};
+        final nameParts = name.toLowerCase().split(' ');
+        for (final part in nameParts) {
+          if (part.isNotEmpty) terms.add(part);
+        }
+        if (name.isNotEmpty) terms.add(name.toLowerCase());
+        if (email.isNotEmpty) {
+          terms.add(email.toLowerCase());
+          final emailName = email.split('@').first.toLowerCase();
+          terms.add(emailName);
+        }
+        return terms.toList();
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'displayName': displayName,
+        'email': email,
+        'searchTerms': generateSearchTerms(displayName, email),
+        'photoUrl': user.photoURL ?? '',
+        'xp': _userXp,
+        'level': _level,
+        'streak': _userStreak,
+        'badgeCount': _achievements.where((a) => a.isUnlocked).length,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      if (kDebugMode) print('Error syncing public profile: $e');
     }
   }
 
@@ -282,7 +343,7 @@ class AppState extends ChangeNotifier {
   void addActivity(Activity activity) {
     _activities.add(activity);
     saveAllData();
-    _scheduleNotificationForActivity(activity);
+    if (!kIsWeb) _scheduleNotificationForActivity(activity);
     notifyListeners();
   }
 
@@ -291,7 +352,7 @@ class AppState extends ChangeNotifier {
     if (index != -1) {
       _activities[index] = activity;
       saveAllData();
-      _scheduleNotificationForActivity(activity);
+      if (!kIsWeb) _scheduleNotificationForActivity(activity);
       notifyListeners();
     }
   }
@@ -301,7 +362,7 @@ class AppState extends ChangeNotifier {
     if (index != -1) {
       _activities[index] = _activities[index].copyWith(isArchived: true);
       saveAllData();
-      NotificationService().cancelReminder(id.hashCode);
+      if (!kIsWeb) NotificationService().cancelReminder(id.hashCode);
       notifyListeners();
     }
   }
@@ -313,16 +374,19 @@ class AppState extends ChangeNotifier {
       final updated = act.copyWith(isActive: !act.isActive);
       _activities[index] = updated;
       saveAllData();
-      if (updated.isActive) {
-        _scheduleNotificationForActivity(updated);
-      } else {
-        NotificationService().cancelReminder(id.hashCode);
+      if (!kIsWeb) {
+        if (updated.isActive) {
+          _scheduleNotificationForActivity(updated);
+        } else {
+          NotificationService().cancelReminder(id.hashCode);
+        }
       }
       notifyListeners();
     }
   }
 
   void _scheduleNotificationForActivity(Activity activity) {
+    if (kIsWeb) return;
     if (!activity.isActive || activity.isArchived || activity.time == null || activity.time == 'Anytime') {
       NotificationService().cancelReminder(activity.id.hashCode);
       return;
@@ -394,7 +458,14 @@ class AppState extends ChangeNotifier {
 
   void _awardXpForActivity(String activityId) {
     final activity = _activities.firstWhere((a) => a.id == activityId);
-    _userXp += activity.xpReward;
+    final int xpAwarded = 25; // Capped at 25 XP per done rate
+    _userXp += xpAwarded;
+    
+    // Set mission complete celebration details
+    _showMissionCompleteCelebration = true;
+    _missionCompleteName = activity.name;
+    _missionCompleteXp = xpAwarded;
+
     _recalculateLevel();
 
     // Check special badges
@@ -431,6 +502,11 @@ class AppState extends ChangeNotifier {
       // Reward 1 streak freeze per level up
       _totalEarnedFreezes += (newLevel - _level);
       _checkLevelBadges(newLevel);
+      _showLevelUpDialog = true;
+      _levelUpTo = newLevel;
+      if (!kIsWeb) {
+        NotificationService().showLevelUpNotification(newLevel);
+      }
     }
     
     _level = newLevel;
@@ -482,44 +558,49 @@ class AppState extends ChangeNotifier {
   }
 
   void _recalculateStreaks() {
-    // Computes overall streak and per-activity streaks from DailyLogs
-    // For now, let's update userStreak and userBestStreak based on overall check-ins.
-    // In a real app we trace the consecutive days of completed logs.
-    // Let's compute actual streak of daily completion of at least one task.
+    // Collect unique dates where at least one task was completed
+    // (Uses .toSet() so completing 5 tasks in a day = 1 streak day, not 5)
     final completedDates = _dailyLogs
         .where((l) => l.status == 'done')
         .map((l) => l.date)
         .toSet()
         .toList();
 
-    completedDates.sort((a, b) => b.compareTo(a)); // desc order
+    completedDates.sort((a, b) => b.compareTo(a)); // desc order (newest first)
 
     if (completedDates.isEmpty) {
       _userStreak = 0;
+      _userFreezesRemaining = _totalEarnedFreezes;
+      _checkStreakBadges(0);
       return;
     }
 
     int currentStreak = 0;
     int freezesUsed = 0;
-    final int maxFreezes = _totalEarnedFreezes; // Freezes user has earned
-    
+    final int maxFreezes = _totalEarnedFreezes;
+
     final today = DateTime.now();
     DateTime checkDate = today;
 
-    while (true) {
+    // Max look-back = number of completed dates + freezes + today, capped at 365
+    final maxLookBack = math.min(completedDates.length + maxFreezes + 1, 365);
+
+    for (int i = 0; i < maxLookBack; i++) {
       final dateStr = _formatDate(checkDate);
       if (completedDates.contains(dateStr)) {
         currentStreak++;
       } else {
-        // If it's today and we haven't done it yet, it's not a broken streak yet.
-        if (checkDate.year == today.year && checkDate.month == today.month && checkDate.day == today.day) {
-          // Do nothing, continue to yesterday
+        // Today: no completion yet doesn't break streak
+        if (checkDate.year == today.year &&
+            checkDate.month == today.month &&
+            checkDate.day == today.day) {
+          // skip today if not yet done — don't break streak
         } else {
           if (freezesUsed < maxFreezes) {
             freezesUsed++;
-            currentStreak++; // Grace day keeps the streak alive
+            currentStreak++; // Grace day — freeze used
           } else {
-            break; // No freezes left, streak is broken
+            break; // Streak broken
           }
         }
       }
@@ -534,10 +615,10 @@ class AppState extends ChangeNotifier {
 
     int highestActivityStreak = 0;
     for (var a in _activities) {
-      final streak = getActivityBestStreak(a.id);
-      if (streak > highestActivityStreak) highestActivityStreak = streak;
+      final s = getActivityBestStreak(a.id);
+      if (s > highestActivityStreak) highestActivityStreak = s;
     }
-    int overallBest = math.max(_userBestStreak, highestActivityStreak).toInt();
+    final overallBest = math.max(_userBestStreak, highestActivityStreak).toInt();
     _checkStreakBadges(overallBest);
   }
 
@@ -660,106 +741,38 @@ class AppState extends ChangeNotifier {
     ];
   }
 
-  List<Friend> _getDefaultFriends() {
-    return [
-      Friend(
-        id: 'friend_1',
-        name: 'Alex Rivera',
-        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuACEZ1WBKs4GvsBmzcVy6P3DDYG7L4JLGmM0y-Cm6Xp5lQa3jQ_mxs2XU7o7a1cLaq04a65jDuyWx6ortg5RqP9A8EjHJDFh5oocsu7Qn7-MFMXxhC26tVyIz9wWk4rq-Py1a9XsyIyXmxpOUhKIyQM44KyV36Iuxwhuh0uR0ddoThFnibsOQTAE2EdRvcE3yuolsFVCiP_Wqkp4LTjSgL3GpSzOrSHK4eP0gkkv6XT5xoMXW6CqRhK-EahuLdTQTLMtw7GPEfP4e7S',
-        points: 12400,
-        streak: 42,
-        recentActivity: 'completed Morning Yoga',
-        recentActivityTime: '30m ago',
-      ),
-      Friend(
-        id: 'friend_2',
-        name: 'Sarah Chen',
-        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8woGpjJatAxyCgA2o9DswLyh-rHj_VhmTxnmdG1dR-HVIKUoxEZdkJH3AzU6TsOPPbPz9ZAy3NEQoqWKlWI52e4pwSt0NLyRKRp67crGlnTuisL62mScDU-MUGTkyDTOgKdhbxuf69dcQJR0VkUjpc9Rgspci9feRXWxzHNQYDVbJkcfZiZWxhauGsBZ9tj4Y69acj3XfOJn7Z7qMtn0kXjKimOy5YUfNwisFR1Dc6NvKEuLKva8NoOYuiKIx8AollxtQIbFCjpju',
-        points: 8450,
-        streak: 15,
-        recentActivity: 'earned the Early Bird badge!',
-        recentActivityTime: '2h ago',
-        badgeEarned: 'Early Bird Lv. 3',
-        badgeIcon: 'wb_sunny',
-        badgeCategory: 'New Badge',
-      ),
-      Friend(
-        id: 'friend_3',
-        name: 'Jordan Lee',
-        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDWJtltf9LyNby49oR2OYbyAstu64ao2GI0yTSS8rfE2oH7HjnXlqpItpPrFzQct_hnnK8d4Y9z5TEeJBdBYGdUwDMpQYyPDUCD6B_X9M26Cqn2pRLlIMRytL_6iu9i-7Uz2MwpoomeFwGOVv9Yv6JYh-xD5f9n5SlHfhz01o4f0JoFbNQfsmoUbG0C6AzaxBUBPcMLeQpjlqOuXom7qzw3hzl4zl2368619Wg1hpJN01TLeyatlznd23K2bp1h87flCQut1hiTGzlQ',
-        points: 10150,
-        streak: 28,
-        recentActivity: 'completed 30 min of Deep Work',
-        recentActivityTime: '3h ago',
-      ),
-      Friend(
-        id: 'friend_4',
-        name: 'Mika',
-        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAp8r6lTIfOqEwWVY-zEsgIVc-QfRbKZefgUrBxharFsU5GzUWM50Bu7gC8OEwZc15CbA4KvfUxPmwddwGd0kI7VoiA-ubEu83Z__7RnXCYoiJnZXH6X6_sTVsV0ud5_UBclZPJ1caZZyZiXiDd_GAwKhQzSHaUqP9Ge8V1Yc1TR4j9LZjPZE89-XEpBd9ZYYXnrfbmaSMEULE4O2MCU4USGR_zR8sAlcr6xTcwtFyXxsN29zHPladcLkzwLNlSe88xIRH8HwH50VaP',
-        points: 5800,
-        streak: 30,
-        recentActivity: 'hit a 30 Day Streak!',
-        recentActivityTime: '5h ago',
-      ),
-    ];
-  }
 
-  final List<Friend> _potentialFriends = [
-    Friend(
-      id: 'pot_1',
-      name: 'Arthur Morgan',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAp8r6lTIfOqEwWVY-zEsgIVc-QfRbKZefgUrBxharFsU5GzUWM50Bu7gC8OEwZc15CbA4KvfUxPmwddwGd0kI7VoiA-ubEu83Z__7RnXCYoiJnZXH6X6_sTVsV0ud5_UBclZPJ1caZZyZiXiDd_GAwKhQzSHaUqP9Ge8V1Yc1TR4j9LZjPZE89-XEpBd9ZYYXnrfbmaSMEULE4O2MCU4USGR_zR8sAlcr6xTcwtFyXxsN29zHPladcLkzwLNlSe88xIRH8HwH50VaP',
-      points: 9500,
-      streak: 12,
-      recentActivity: 'completed Ride Horse',
-      recentActivityTime: '10m ago',
-    ),
-    Friend(
-      id: 'pot_2',
-      name: 'John Marston',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDWJtltf9LyNby49oR2OYbyAstu64ao2GI0yTSS8rfE2oH7HjnXlqpItpPrFzQct_hnnK8d4Y9z5TEeJBdBYGdUwDMpQYyPDUCD6B_X9M26Cqn2pRLlIMRytL_6iu9i-7Uz2MwpoomeFwGOVv9Yv6JYh-xD5f9n5SlHfhz01o4f0JoFbNQfsmoUbG0C6AzaxBUBPcMLeQpjlqOuXom7qzw3hzl4zl2368619Wg1hpJN01TLeyatlznd23K2bp1h87flCQut1hiTGzlQ',
-      points: 7200,
-      streak: 8,
-      recentActivity: 'completed Target Practice',
-      recentActivityTime: '1h ago',
-    ),
-    Friend(
-      id: 'pot_3',
-      name: 'Sadie Adler',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8woGpjJatAxyCgA2o9DswLyh-rHj_VhmTxnmdG1dR-HVIKUoxEZdkJH3AzU6TsOPPbPz9ZAy3NEQoqWKlWI52e4pwSt0NLyRKRp67crGlnTuisL62mScDU-MUGTkyDTOgKdhbxuf69dcQJR0VkUjpc9Rgspci9feRXWxzHNQYDVbJkcfZiZWxhauGsBZ9tj4Y69acj3XfOJn7Z7qMtn0kXjKimOy5YUfNwisFR1Dc6NvKEuLKva8NoOYuiKIx8AollxtQIbFCjpju',
-      points: 11000,
-      streak: 22,
-      recentActivity: 'completed Bounty Hunt',
-      recentActivityTime: '5m ago',
-    ),
-    Friend(
-      id: 'pot_4',
-      name: 'Charles Smith',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAp8r6lTIfOqEwWVY-zEsgIVc-QfRbKZefgUrBxharFsU5GzUWM50Bu7gC8OEwZc15CbA4KvfUxPmwddwGd0kI7VoiA-ubEu83Z__7RnXCYoiJnZXH6X6_sTVsV0ud5_UBclZPJ1caZZyZiXiDd_GAwKhQzSHaUqP9Ge8V1Yc1TR4j9LZjPZE89-XEpBd9ZYYXnrfbmaSMEULE4O2MCU4USGR_zR8sAlcr6xTcwtFyXxsN29zHPladcLkzwLNlSe88xIRH8HwH50VaP',
-      points: 8800,
-      streak: 18,
-      recentActivity: 'completed Tracking & Hunting',
-      recentActivityTime: '3h ago',
-    ),
-    Friend(
-      id: 'pot_5',
-      name: 'Dutch van der Linde',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuACEZ1WBKs4GvsBmzcVy6P3DDYG7L4JLGmM0y-Cm6Xp5lQa3jQ_mxs2XU7o7a1cLaq04a65jDuyWx6ortg5RqP9A8EjHJDFh5oocsu7Qn7-MFMXxhC26tVyIz9wWk4rq-Py1a9XsyIyXmxpOUhKIyQM44KyV36Iuxwhuh0uR0ddoThFnibsOQTAE2EdRvcE3yuolsFVCiP_Wqkp4LTjSgL3GpSzOrSHK4eP0gkkv6XT5xoMXW6CqRhK-EahuLdTQTLMtw7GPEfP4e7S',
-      points: 15000,
-      streak: 50,
-      recentActivity: 'planning a new heist',
-      recentActivityTime: '2m ago',
-    ),
-  ];
 
-  List<Friend> get potentialFriends => _potentialFriends.where((p) => !_friends.any((f) => f.id == p.id)).toList();
 
   void addFriend(Friend friend) {
     if (!_friends.any((f) => f.id == friend.id)) {
       _friends.add(friend);
       saveAllData();
+      // Try to refresh friend data from their public profile
+      _refreshFriendFromFirestore(friend.id);
       notifyListeners();
     }
+  }
+
+  Future<void> _refreshFriendFromFirestore(String uid) async {
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        final index = _friends.indexWhere((f) => f.id == uid);
+        if (index != -1) {
+          _friends[index] = Friend(
+            id: uid,
+            name: data['displayName'] ?? _friends[index].name,
+            avatarUrl: data['photoUrl'] ?? _friends[index].avatarUrl,
+            xp: data['xp'] ?? _friends[index].xp,
+            streak: data['streak'] ?? _friends[index].streak,
+          );
+          saveAllData();
+          notifyListeners();
+        }
+      }
+    } catch (_) {}
   }
 
   void removeFriend(String id) {

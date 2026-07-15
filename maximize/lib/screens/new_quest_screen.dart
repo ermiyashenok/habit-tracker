@@ -377,7 +377,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
               Padding(
                 padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
                 child: Text(
-                  'QUEST LOG NOTES',
+                  'QUEST NOTES',
                   style: TextStyle(
                     fontFamily: 'BeVietnamPro',
                     fontWeight: FontWeight.bold,

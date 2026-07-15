@@ -34,6 +34,48 @@ class NotificationService {
     );
   }
 
+  Future<void> showTestNotification() async {
+    // Request permission first
+    if (!kIsWeb) {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+      }
+    }
+    
+    await flutterLocalNotificationsPlugin.show(
+      999,
+      'Maximize Test Reminder! 🔔',
+      'This shows push notifications and daily reminders are working properly.',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'test_reminders',
+          'Test Reminders',
+          channelDescription: 'Test notifications channel',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  }
+
+  Future<void> showLevelUpNotification(int level) async {
+    await flutterLocalNotificationsPlugin.show(
+      888,
+      'LEVEL UP! 🌟',
+      'You reached Level $level Habit Master! Keep up the great work!',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'level_up_alerts',
+          'Level Up Alerts',
+          channelDescription: 'Congratulations alerts when leveling up',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  }
+
   Future<void> scheduleDailyReminder(int id, String title, String body, int hour, int minute) async {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);

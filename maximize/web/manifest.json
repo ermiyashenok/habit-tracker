@@ -1,11 +1,11 @@
 {
-    "name": "maximize",
-    "short_name": "maximize",
+    "name": "Maximize",
+    "short_name": "Maximize",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#000000",
+    "theme_color": "#FF6A00",
+    "description": "Turn your habits into epic quests. A gamified habit tracker to level up your daily life.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

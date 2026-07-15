@@ -109,6 +109,16 @@ class _PlannerScreenState extends State<PlannerScreen> {
   }
 
   Widget _buildWeekView() {
+    final now = DateTime.now();
+    final months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    final weekNumber = ((now.difference(DateTime(now.year, 1, 1)).inDays + DateTime(now.year, 1, 1).weekday) / 7).ceil();
+    final dayNames = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+    // Start of current week (Monday)
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    // Compute per-day completion
+    final logs = widget.state.dailyLogs;
+    final activities = widget.state.activeActivities;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -117,7 +127,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'September',
+              months[now.month - 1],
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.w800,
                 fontSize: 24.0,
@@ -125,7 +135,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
               ),
             ),
             Text(
-              'WEEK 38',
+              'WEEK $weekNumber',
               style: TextStyle(
                 fontFamily: 'BeVietnamPro',
                 fontWeight: FontWeight.bold,
@@ -136,151 +146,143 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
           ],
         ),
-        SizedBox(height: 16.0),
+        const SizedBox(height: 16.0),
 
-        // Horizontal Week Days selector
+        // Horizontal Week Days — real data
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: [
-              _buildDayCard(dayName: 'MON', dayNum: '18', progress: 0.8),
-              SizedBox(width: 12.0),
-              _buildDayCard(dayName: 'TUE', dayNum: '19', progress: 0.4, isActive: true),
-              SizedBox(width: 12.0),
-              _buildDayCard(dayName: 'WED', dayNum: '20', progress: 0.0),
-              SizedBox(width: 12.0),
-              _buildDayCard(dayName: 'THU', dayNum: '21', progress: 0.2),
-              SizedBox(width: 12.0),
-              _buildDayCard(dayName: 'FRI', dayNum: '22', progress: 0.95),
-            ],
+            children: List.generate(7, (i) {
+              final day = startOfWeek.add(Duration(days: i));
+              final dateStr = '${day.year.toString().padLeft(4,'0')}-${day.month.toString().padLeft(2,'0')}-${day.day.toString().padLeft(2,'0')}';
+              final doneLogs = logs.where((l) => l.date == dateStr && l.status == 'done').length;
+              final totalActs = activities.length;
+              final progress = totalActs > 0 ? (doneLogs / totalActs).clamp(0.0, 1.0) : 0.0;
+              final isToday = day.year == now.year && day.month == now.month && day.day == now.day;
+              return Padding(
+                padding: EdgeInsets.only(right: i < 6 ? 12.0 : 0),
+                child: _buildDayCard(
+                  dayName: dayNames[i],
+                  dayNum: '${day.day}',
+                  progress: progress,
+                  isActive: isToday,
+                ),
+              );
+            }),
           ),
         ),
-        SizedBox(height: 24.0),
+        const SizedBox(height: 24.0),
 
-        // Bento Grid Title
-        Text(
-          'Your Weekly Quests',
-          style: GoogleFonts.plusJakartaSans(
-            fontWeight: FontWeight.w800,
-            fontSize: 20.0,
-            color: ChunkyColors.onSurface,
-          ),
-        ),
-        SizedBox(height: 16.0),
-
-        // Goals & Streak Bento Grid
-        ChunkyCard(
-          borderColor: ChunkyColors.outlineVariant,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-                    decoration: BoxDecoration(
-                      color: ChunkyColors.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    child: Text(
-                      'CURRENT GOAL',
-                      style: TextStyle(
-                        fontFamily: 'BeVietnamPro',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10.0,
-                        color: ChunkyColors.primary,
+        // Weekly progress summary
+        Builder(builder: (context) {
+          final totalActs = activities.length;
+          final doneTodayCount = logs.where((l) => l.date == '${now.year.toString().padLeft(4,'0')}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')}' && l.status == 'done').length;
+          final pct = totalActs > 0 ? (doneTodayCount / totalActs * 100).round() : 0;
+          return ChunkyCard(
+            borderColor: ChunkyColors.outlineVariant,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                      decoration: BoxDecoration(
+                        color: ChunkyColors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      child: Text(
+                        "TODAY'S PROGRESS",
+                        style: TextStyle(
+                          fontFamily: 'BeVietnamPro',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10.0,
+                          color: ChunkyColors.primary,
+                        ),
                       ),
                     ),
-                  ),
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: ChunkyColors.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Icon(Icons.translate, color: ChunkyColors.primary),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12.0),
-              Text(
-                'Finish Language Module',
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18.0,
-                  color: ChunkyColors.onSurface,
-                ),
-              ),
-              SizedBox(height: 12.0),
-              Row(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: 0.65,
-                        minHeight: 12.0,
-                        backgroundColor: ChunkyColors.surfaceContainerLow,
-                        color: ChunkyColors.onSurface,
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: ChunkyColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12.0),
                       ),
+                      child: Icon(Icons.track_changes, color: ChunkyColors.primary),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+                Text(
+                  totalActs == 0
+                      ? 'No missions yet — add your first quest!'
+                      : '$doneTodayCount of $totalActs missions completed',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18.0,
+                    color: ChunkyColors.onSurface,
                   ),
-                  SizedBox(width: 12.0),
-                  Text(
-                    '65%',
-                    style: TextStyle(
-                      fontFamily: 'BeVietnamPro',
-                      fontWeight: FontWeight.bold,
-                      color: ChunkyColors.primary,
-                    ),
+                ),
+                const SizedBox(height: 12.0),
+                if (totalActs > 0) ...
+                [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: doneTodayCount / totalActs,
+                            minHeight: 12.0,
+                            backgroundColor: ChunkyColors.surfaceContainerLow,
+                            color: ChunkyColors.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12.0),
+                      Text(
+                        '$pct%',
+                        style: TextStyle(
+                          fontFamily: 'BeVietnamPro',
+                          fontWeight: FontWeight.bold,
+                          color: ChunkyColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-              SizedBox(height: 12.0),
-              Text(
-                '3 sessions left this week to reach your goal!',
-                style: TextStyle(
-                  fontFamily: 'BeVietnamPro',
-                  color: ChunkyColors.onSurfaceVariant,
-                  fontSize: 14.0,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 16.0),
+              ],
+            ),
+          );
+        }),
+        const SizedBox(height: 16.0),
 
         Row(
           children: [
-            // Quick Add Card
+            // Quick Add Card — fixed icon visibility
             Expanded(
               child: GestureDetector(
                 onTap: widget.onAddQuestPressed,
                 child: Container(
                   height: 120.0,
                   decoration: BoxDecoration(
-                    color: ChunkyColors.onSurface.withOpacity(0.1),
+                    color: ChunkyColors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20.0),
-                    border: Border.all(
-                      color: ChunkyColors.onSurface,
-                      width: 2.0,
-                      style: BorderStyle.solid,
-                    ),
+                    border: Border.all(color: ChunkyColors.primary, width: 2.0),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(10.0),
                         decoration: BoxDecoration(
-                          color: ChunkyColors.onSurface,
+                          color: ChunkyColors.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.add, color: ChunkyColors.onSurface, size: 20.0),
+                        child: const Icon(Icons.add, color: Colors.white, size: 22.0),
                       ),
-                      SizedBox(height: 8.0),
+                      const SizedBox(height: 10.0),
                       Text(
                         'Quick Add Task',
                         style: TextStyle(
@@ -366,7 +368,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
               ),
             ),
             GestureDetector(
-              onTap: widget.onAddQuestPressed,
+              onTap: () => _showAllSuggestions(context),
               child: Text(
                 'SEE ALL',
                 style: TextStyle(
@@ -378,139 +380,25 @@ class _PlannerScreenState extends State<PlannerScreen> {
             ),
           ],
         ),
-        SizedBox(height: 16.0),
+        const SizedBox(height: 16.0),
 
-        _buildSuggestedActivityItem(
-          title: 'Morning Gym Session',
-          subtitle: '45 mins • Health',
-          icon: Icons.fitness_center,
-          color: ChunkyColors.primary,
-        ),
-        SizedBox(height: 12.0),
-        _buildSuggestedActivityItem(
-          title: 'Read 10 Pages',
-          subtitle: '20 mins • Learning',
-          icon: Icons.book,
-          color: ChunkyColors.onSurface,
-        ),
-        SizedBox(height: 12.0),
-        _buildSuggestedActivityItem(
-          title: 'Daily Mindfulness',
-          subtitle: '10 mins • Spirit',
-          icon: Icons.mediation,
-          color: ChunkyColors.onSurface,
-        ),
+        ..._suggestedActivities().take(3).map((s) => Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: _buildSuggestedActivityItem(
+            title: s['title'] as String,
+            subtitle: s['subtitle'] as String,
+            icon: s['icon'] as IconData,
+            color: s['color'] as Color,
+            category: s['category'] as String,
+            duration: s['duration'] as int?,
+          ),
+        )),
         const SizedBox(height: 24.0),
-        _buildPausedQuestsSection(),
       ],
     );
   }
 
-  Widget _buildPausedQuestsSection() {
-    final pausedQuests = widget.state.activities.where((a) => !a.isActive).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Paused Quests',
-          style: GoogleFonts.plusJakartaSans(
-            fontWeight: FontWeight.w800,
-            fontSize: 20.0,
-            color: ChunkyColors.onSurface,
-          ),
-        ),
-        const SizedBox(height: 12.0),
-        if (pausedQuests.isEmpty)
-          ChunkyCard(
-            borderColor: ChunkyColors.surfaceContainerHighest,
-            child: const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text(
-                  'No paused quests. Paused quests will appear here to resume at any time.',
-                  style: TextStyle(fontFamily: 'BeVietnamPro', color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          )
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: pausedQuests.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12.0),
-            itemBuilder: (context, index) {
-              final quest = pausedQuests[index];
-              return ChunkyCard(
-                borderColor: ChunkyColors.surfaceContainerHighest,
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        color: ChunkyColors.surfaceContainerLow,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.pause, color: ChunkyColors.outline),
-                    ),
-                    const SizedBox(width: 12.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            quest.name,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15.0,
-                              color: ChunkyColors.onSurface,
-                            ),
-                          ),
-                          Text(
-                            '${quest.category.toUpperCase()} • ${quest.durationMinutes != null ? "${quest.durationMinutes} min timer" : "No timer"}',
-                            style: TextStyle(
-                              fontFamily: 'BeVietnamPro',
-                              color: ChunkyColors.outline,
-                              fontSize: 12.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ChunkyButton(
-                      backgroundColor: ChunkyColors.primaryContainer,
-                      shadowColor: ChunkyColors.primary,
-                      shadowHeight: 2,
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      onTap: () {
-                        widget.state.toggleActivityPause(quest.id);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${quest.name} has been resumed!'),
-                            backgroundColor: ChunkyColors.primary,
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'RESUME',
-                        style: TextStyle(
-                          fontFamily: 'BeVietnamPro',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12.0,
-                          color: ChunkyColors.onSurface,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-      ],
-    );
-  }
 
   Widget _buildMonthView() {
     return Column(
@@ -760,87 +648,164 @@ class _PlannerScreenState extends State<PlannerScreen> {
     );
   }
 
+  List<Map<String, dynamic>> _suggestedActivities() {
+    return [
+      {'title': 'Morning Gym Session', 'subtitle': '45 mins • Health', 'icon': Icons.fitness_center, 'color': ChunkyColors.primary, 'category': 'Health', 'duration': 45},
+      {'title': 'Read 10 Pages', 'subtitle': '20 mins • Learning', 'icon': Icons.menu_book, 'color': ChunkyColors.secondary, 'category': 'Learning', 'duration': 20},
+      {'title': 'Daily Mindfulness', 'subtitle': '10 mins • Spirit', 'icon': Icons.self_improvement, 'color': const Color(0xFF9C27B0), 'category': 'Spirit', 'duration': 10},
+      {'title': 'Evening Walk', 'subtitle': '30 mins • Health', 'icon': Icons.directions_walk, 'color': const Color(0xFF4CAF50), 'category': 'Health', 'duration': 30},
+      {'title': 'Drink 8 Glasses of Water', 'subtitle': 'One action • Health', 'icon': Icons.water_drop, 'color': const Color(0xFF2196F3), 'category': 'Health', 'duration': null},
+      {'title': 'Journal Entry', 'subtitle': '15 mins • Mind', 'icon': Icons.edit_note, 'color': const Color(0xFFFF9800), 'category': 'Mind', 'duration': 15},
+      {'title': 'Cold Shower', 'subtitle': 'One action • Health', 'icon': Icons.shower, 'color': const Color(0xFF00BCD4), 'category': 'Health', 'duration': null},
+      {'title': 'Practice Gratitude', 'subtitle': '5 mins • Spirit', 'icon': Icons.favorite, 'color': const Color(0xFFE91E63), 'category': 'Spirit', 'duration': 5},
+      {'title': 'Stretching Routine', 'subtitle': '15 mins • Health', 'icon': Icons.accessibility_new, 'color': ChunkyColors.primary, 'category': 'Health', 'duration': 15},
+      {'title': 'Language Practice', 'subtitle': '20 mins • Learning', 'icon': Icons.translate, 'color': const Color(0xFF607D8B), 'category': 'Learning', 'duration': 20},
+      {'title': 'No Social Media', 'subtitle': 'One action • Mind', 'icon': Icons.phone_locked, 'color': const Color(0xFFFF5722), 'category': 'Mind', 'duration': null},
+      {'title': 'Cook a Healthy Meal', 'subtitle': '30 mins • Health', 'icon': Icons.restaurant, 'color': const Color(0xFF8BC34A), 'category': 'Health', 'duration': 30},
+    ];
+  }
+
+  void _showAllSuggestions(BuildContext context) {
+    final suggestions = _suggestedActivities();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        maxChildSize: 0.95,
+        minChildSize: 0.5,
+        builder: (ctx, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: ChunkyColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(color: ChunkyColors.outlineVariant),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: ChunkyColors.outline.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                child: Row(
+                  children: [
+                    Text(
+                      'All Suggested Activities',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 20,
+                        color: ChunkyColors.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                  itemCount: suggestions.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (ctx2, i) {
+                    final s = suggestions[i];
+                    return _buildSuggestedActivityItem(
+                      title: s['title'] as String,
+                      subtitle: s['subtitle'] as String,
+                      icon: s['icon'] as IconData,
+                      color: s['color'] as Color,
+                      category: s['category'] as String,
+                      duration: s['duration'] as int?,
+                      onAdded: () => Navigator.of(ctx2).pop(),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSuggestedActivityItem({
     required String title,
     required String subtitle,
     required IconData icon,
     required Color color,
+    required String category,
+    int? duration,
+    VoidCallback? onAdded,
   }) {
+    final alreadyAdded = widget.state.activities.any((a) => a.name == title && !a.isArchived);
     return ChunkyCard(
       borderColor: ChunkyColors.outlineVariant,
-      onTap: () {
-        // Quick add the suggested activity to the state
+      onTap: alreadyAdded ? null : () {
         final newAct = Activity(
           id: 'act_${DateTime.now().millisecondsSinceEpoch}',
           name: title,
-          category: title.contains('Mind') ? 'Mind' : (title.contains('Gym') ? 'Health' : 'Learning'),
-          time: '08:00',
+          category: category,
+          time: 'Anytime',
           repeatPattern: 'daily',
           createdAt: DateTime.now(),
+          durationMinutes: duration,
         );
         widget.state.addActivity(newAct);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: ChunkyColors.primaryContainer,
-            content: Text(
-              '"$title" added to today\'s missions!',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            content: Text('"$title" added to your quests!',
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         );
+        onAdded?.call();
       },
       child: Row(
         children: [
           Container(
-            width: 48.0,
-            height: 48.0,
+            width: 48.0, height: 48.0,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12.0),
             ),
             child: Icon(icon, color: color, size: 24.0),
           ),
-          SizedBox(width: 16.0),
+          const SizedBox(width: 16.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
+                Text(title,
                   style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.0,
-                    color: ChunkyColors.onSurface,
-                  ),
-                ),
-                Text(
-                  subtitle,
+                    fontWeight: FontWeight.bold, fontSize: 16.0,
+                    color: alreadyAdded ? ChunkyColors.outline : ChunkyColors.onSurface,
+                    decoration: alreadyAdded ? TextDecoration.lineThrough : null,
+                  )),
+                Text(subtitle,
                   style: TextStyle(
-                    fontFamily: 'BeVietnamPro',
-                    fontSize: 12.0,
+                    fontFamily: 'BeVietnamPro', fontSize: 12.0,
                     color: ChunkyColors.outline,
-                  ),
-                ),
+                  )),
               ],
             ),
           ),
-          Container(
-            width: 36.0,
-            height: 36.0,
-            decoration: BoxDecoration(
-              color: ChunkyColors.onSurface,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: ChunkyColors.primary,
-                width: 2.0,
+          if (alreadyAdded)
+            Icon(Icons.check_circle, color: ChunkyColors.primary, size: 24)
+          else
+            Container(
+              width: 36.0, height: 36.0,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(color: color, width: 2.0),
               ),
+              child: Icon(Icons.add, color: color, size: 18.0),
             ),
-            child: Icon(
-              Icons.event_available,
-              color: ChunkyColors.primary,
-              size: 18.0,
-            ),
-          ),
         ],
       ),
     );

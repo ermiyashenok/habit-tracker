@@ -18,6 +18,8 @@ class StatsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final totalCompleted = state.dailyLogs.where((l) => l.status == 'done').length;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -148,19 +150,11 @@ class StatsScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 8.0),
                       Text(
-                        '128',
+                        '$totalCompleted',
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w800,
                           fontSize: 32.0,
                           color: ChunkyColors.onSurface,
-                        ),
-                      ),
-                      Text(
-                        '+12 this week',
-                        style: TextStyle(
-                          fontFamily: 'BeVietnamPro',
-                          fontSize: 12.0,
-                          color: ChunkyColors.primary,
                         ),
                       ),
                     ],
@@ -345,121 +339,6 @@ class StatsScreen extends StatelessWidget {
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24.0),
-
-          // Category Breakdown
-          Text(
-            'Quest Categories',
-            style: GoogleFonts.plusJakartaSans(
-              fontWeight: FontWeight.w800,
-              fontSize: 20.0,
-              color: ChunkyColors.onSurface,
-            ),
-          ),
-          SizedBox(height: 16.0),
-
-          _buildCategoryBreakdownCard(
-            title: 'Health',
-            percentage: 92,
-            color: ChunkyColors.errorRed,
-            icon: Icons.favorite,
-          ),
-          SizedBox(height: 12.0),
-          _buildCategoryBreakdownCard(
-            title: 'Work',
-            percentage: 68,
-            color: ChunkyColors.primary,
-            icon: Icons.work,
-          ),
-          SizedBox(height: 12.0),
-          _buildCategoryBreakdownCard(
-            title: 'Social',
-            percentage: 45,
-            color: ChunkyColors.primary,
-            icon: Icons.groups,
-          ),
-          SizedBox(height: 12.0),
-          _buildCategoryBreakdownCard(
-            title: 'Mind',
-            percentage: 76,
-            color: ChunkyColors.primaryContainer,
-            icon: Icons.psychology,
-          ),
-          SizedBox(height: 24.0),
-
-          // Achievement Preview Card
-          Container(
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              color: ChunkyColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20.0),
-              border: Border.all(
-                color: ChunkyColors.primary,
-                width: 4.0,
-                style: BorderStyle.solid,
-              ),
-            ),
-            child: Column(
-              children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Icon(
-                      Icons.military_tech,
-                      color: ChunkyColors.primary,
-                      size: 64.0,
-                    ),
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: Container(
-                        padding: const EdgeInsets.all(2.0),
-                        decoration: BoxDecoration(
-                          color: ChunkyColors.onSurface,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.check_circle, color: ChunkyColors.primary, size: 16.0),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.0),
-                Text(
-                  'Almost there!',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20.0,
-                    color: ChunkyColors.onSurface,
-                  ),
-                ),
-                SizedBox(height: 4.0),
-                Text(
-                  "Complete 3 more quests to unlock the 'Consistency King' badge.",
-                  style: TextStyle(
-                    fontFamily: 'BeVietnamPro',
-                    fontSize: 14.0,
-                    color: ChunkyColors.outline,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 16.0),
-                ChunkyButton(
-                  backgroundColor: ChunkyColors.primary,
-                  shadowColor: Colors.purple.shade800,
-                  onTap: onViewAchievementsPressed,
-                  child: Text(
-                    'VIEW ALL ACHIEVEMENTS',
-                    style: TextStyle(
-                      fontFamily: 'BeVietnamPro',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14.0,
-                      color: ChunkyColors.onSurface,
-                    ),
                   ),
                 ),
               ],

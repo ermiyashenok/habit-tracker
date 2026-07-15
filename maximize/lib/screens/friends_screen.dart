@@ -1,26 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/chunky_colors.dart';
 import '../widgets/chunky_card.dart';
+import '../widgets/avatar_helper.dart';
 import '../providers/app_state.dart';
 import '../models/friend.dart';
-
-class LeaderboardEntry {
-  final String name;
-  final int points;
-  final int streak;
-  final String avatarUrl;
-  final bool isCurrentUser;
-
-  LeaderboardEntry({
-    required this.name,
-    required this.points,
-    required this.streak,
-    required this.avatarUrl,
-    required this.isCurrentUser,
-  });
-}
+import 'user_profile_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
   final AppState state;
@@ -36,828 +23,576 @@ class FriendsScreen extends StatefulWidget {
 
 class _FriendsScreenState extends State<FriendsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final Set<String> _reactedFriends = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController.addListener(_onSearchChanged);
-  }
-
-  void _onSearchChanged() {
-    setState(() {});
-  }
-
-  void _triggerCheerEffect(String friendId) {
-    setState(() {
-      _reactedFriends.add(friendId);
-    });
-
-    // Reset after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _reactedFriends.remove(friendId);
-        });
-      }
-    });
-  }
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
+  bool _showSearch = false;
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
 
+  Future<void> _searchUsers(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() => _searchResults = []);
+      return;
+    }
+
+    setState(() => _isSearching = true);
+
+    try {
+      final currentUid = FirebaseAuth.instance.currentUser?.uid;
+      final q = query.trim().toLowerCase();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('searchTerms', arrayContains: q)
+          .limit(20)
+          .get();
+
+      final results = snapshot.docs
+          .where((doc) => doc.id != currentUid) // exclude self
+          .map((doc) {
+            final data = doc.data();
+            return {
+              'uid': doc.id,
+              'displayName': data['displayName'] ?? 'Adventurer',
+              'photoUrl': data['photoUrl'] ?? '',
+              'xp': data['xp'] ?? 0,
+              'level': data['level'] ?? 1,
+              'streak': data['streak'] ?? 0,
+            };
+          })
+          .toList();
+
+      setState(() {
+        _searchResults = results;
+        _isSearching = false;
+      });
+    } catch (e) {
+      setState(() => _isSearching = false);
+    }
+  }
+
+  void _openUserProfile(Map<String, dynamic> userData) {
+    final uid = userData['uid'] as String;
+    final isFriend = widget.state.friends.any((f) => f.id == uid);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => UserProfileScreen(
+          uid: uid,
+          displayName: userData['displayName'] ?? 'Adventurer',
+          photoUrl: userData['photoUrl'],
+          isFriend: isFriend,
+          onAddFriend: () {
+            widget.state.addFriend(Friend(
+              id: uid,
+              name: userData['displayName'] ?? 'Adventurer',
+              avatarUrl: userData['photoUrl'] ?? '',
+              xp: userData['xp'] ?? 0,
+              streak: userData['streak'] ?? 0,
+            ));
+          },
+          onRemoveFriend: () {
+            widget.state.removeFriend(uid);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar(String? photoUrl, {double size = 48, String? name}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: ChunkyColors.primary.withOpacity(0.5), width: 2),
+      ),
+      child: buildAvatarWidget(photoUrl, size: size - 4, fallbackLetter: name),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final query = _searchController.text.trim().toLowerCase();
     final friends = widget.state.friends;
-    final potentialFriends = widget.state.potentialFriends;
-
-    final filteredFriends = query.isEmpty 
-        ? friends 
-        : friends.where((f) => f.name.toLowerCase().contains(query)).toList();
-
-    final filteredPotential = query.isEmpty
-        ? <Friend>[]
-        : potentialFriends.where((p) => p.name.toLowerCase().contains(query)).toList();
-
-    // Stats
-    final unlockedBadgesCount = widget.state.achievements.where((a) => a.isUnlocked).length;
-
-    // Leaderboard
-    final List<LeaderboardEntry> leaderboard = [];
     final currentUser = FirebaseAuth.instance.currentUser;
-    leaderboard.add(LeaderboardEntry(
-      name: (currentUser?.displayName != null && currentUser!.displayName!.isNotEmpty) ? currentUser.displayName! : 'You (Adventurer)',
-      points: widget.state.userXp,
-      streak: widget.state.userStreak,
-      avatarUrl: currentUser?.photoURL ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuAp8r6lTIfOqEwWVY-zEsgIVc-QfRbKZefgUrBxharFsU5GzUWM50Bu7gC8OEwZc15CbA4KvfUxPmwddwGd0kI7VoiA-ubEu83Z__7RnXCYoiJnZXH6X6_sTVsV0ud5_UBclZPJ1caZZyZiXiDd_GAwKhQzSHaUqP9Ge8V1Yc1TR4j9LZjPZE89-XEpBd9ZYYXnrfbmaSMEULE4O2MCU4USGR_zR8sAlcr6xTcwtFyXxsN29zHPladcLkzwLNlSe88xIRH8HwH50VaP',
-      isCurrentUser: true,
-    ));
-    for (var f in friends) {
-      leaderboard.add(LeaderboardEntry(
-        name: f.name,
-        points: f.points,
-        streak: f.streak,
-        avatarUrl: f.avatarUrl,
-        isCurrentUser: false,
-      ));
-    }
-    leaderboard.sort((a, b) => b.points.compareTo(a.points));
+    final myXp = widget.state.userXp;
+    final myStreak = widget.state.userStreak;
+    final myBadges = widget.state.achievements.where((a) => a.isUnlocked).length;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Search Box
-          FocusScope(
-            child: Focus(
-              onFocusChange: (hasFocus) {},
-              child: Builder(
-                builder: (context) {
-                  final hasFocus = Focus.of(context).hasFocus;
-                  return AnimatedContainer(
-                    duration: Duration(milliseconds: 150),
-                    decoration: BoxDecoration(
-                      color: ChunkyColors.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(
-                        color: hasFocus ? ChunkyColors.primaryContainer : ChunkyColors.surfaceContainerHighest,
-                        width: 2.0,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: hasFocus ? ChunkyColors.primaryContainer : const Color(0xFFE3E2E2),
-                          offset: const Offset(0, 4),
-                          blurRadius: 0,
-                          spreadRadius: 0,
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      style: TextStyle(fontFamily: 'BeVietnamPro', fontSize: 16.0),
-                      decoration: InputDecoration(
-                        hintText: 'Find friends...',
-                        prefixIcon: Icon(Icons.search, color: ChunkyColors.outline),
-                        suffixIcon: query.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () => _searchController.clear(),
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 16.0),
-                      ),
-                    ),
-                  );
-                },
-              ),
+          // ── My Stats ──────────────────────────────────────────────
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildStatCard('Quest Points', '$myXp', Icons.stars, ChunkyColors.primary),
+                const SizedBox(width: 12),
+                _buildStatCard('Streak', '$myStreak Days', Icons.bolt, ChunkyColors.secondary),
+                const SizedBox(width: 12),
+                _buildStatCard('Badges', '$myBadges', Icons.emoji_events, const Color(0xFFFF9800)),
+              ],
             ),
           ),
-          SizedBox(height: 24.0),
+          const SizedBox(height: 24),
 
-          if (query.isNotEmpty) ...[
-            // Search Mode Results
-            Text(
-              'MY FRIENDS',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.bold,
-                fontSize: 12.0,
-                letterSpacing: 1.5,
-                color: ChunkyColors.onSurfaceVariant,
-              ),
-            ),
-            SizedBox(height: 12.0),
-            if (filteredFriends.isEmpty)
-              ChunkyCard(
-                child: const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'No friends found matching your search.',
-                      style: TextStyle(fontFamily: 'BeVietnamPro', color: Colors.grey),
-                    ),
-                  ),
-                ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: filteredFriends.length,
-                separatorBuilder: (_, __) => SizedBox(height: 12.0),
-                itemBuilder: (context, index) {
-                  final f = filteredFriends[index];
-                  return ChunkyCard(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40.0,
-                          height: 40.0,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: ChunkyColors.surfaceContainerHighest, width: 2.0),
-                            image: DecorationImage(
-                              image: NetworkImage(f.avatarUrl),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 12.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                f.name,
-                                style: const TextStyle(
-                                  fontFamily: 'BeVietnamPro',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15.0,
-                                ),
-                              ),
-                              Text(
-                                '${f.points} XP • Streak: ${f.streak} days',
-                                style: TextStyle(
-                                  fontFamily: 'BeVietnamPro',
-                                  color: ChunkyColors.outline,
-                                  fontSize: 12.0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.person_remove, color: ChunkyColors.errorRed),
-                          onPressed: () {
-                            widget.state.removeFriend(f.id);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${f.name} removed from friends.'),
-                                backgroundColor: ChunkyColors.errorRed,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            SizedBox(height: 24.0),
-            Text(
-              'SEARCH DIRECTORY',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.bold,
-                fontSize: 12.0,
-                letterSpacing: 1.5,
-                color: ChunkyColors.onSurfaceVariant,
-              ),
-            ),
-            SizedBox(height: 12.0),
-            if (filteredPotential.isEmpty)
-              ChunkyCard(
-                child: const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'No new users found.',
-                      style: TextStyle(fontFamily: 'BeVietnamPro', color: Colors.grey),
-                    ),
-                  ),
-                ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: filteredPotential.length,
-                separatorBuilder: (_, __) => SizedBox(height: 12.0),
-                itemBuilder: (context, index) {
-                  final f = filteredPotential[index];
-                  return ChunkyCard(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40.0,
-                          height: 40.0,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: ChunkyColors.surfaceContainerHighest, width: 2.0),
-                            image: DecorationImage(
-                              image: NetworkImage(f.avatarUrl),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 12.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                f.name,
-                                style: const TextStyle(
-                                  fontFamily: 'BeVietnamPro',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15.0,
-                                ),
-                              ),
-                              Text(
-                                '${f.points} XP • Streak: ${f.streak} days',
-                                style: TextStyle(
-                                  fontFamily: 'BeVietnamPro',
-                                  color: ChunkyColors.outline,
-                                  fontSize: 12.0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.person_add, color: ChunkyColors.primary),
-                          onPressed: () {
-                            widget.state.addFriend(f);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${f.name} added to friends!'),
-                                backgroundColor: ChunkyColors.primary,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-          ] else ...[
-            // Default Mode
-            // Stats Quick Look (Horizontal Scroll)
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+          // ── Search Toggle ─────────────────────────────────────────
+          if (!_showSearch)
+            ChunkyCard(
+              borderColor: ChunkyColors.primary.withOpacity(0.4),
+              shadowColor: ChunkyColors.primary.withOpacity(0.25),
+              shadowHeight: 4,
+              onTap: () => setState(() => _showSearch = true),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildQuickStatCard(
-                    title: 'Quest Points',
-                    value: '${widget.state.userXp}',
-                    icon: Icons.stars,
-                    cardColor: ChunkyColors.surfaceContainerLow,
-                    borderColor: ChunkyColors.primary,
-                  ),
-                  SizedBox(width: 12.0),
-                  _buildQuickStatCard(
-                    title: 'Active Streak',
-                    value: '${widget.state.userStreak} Days',
-                    icon: Icons.bolt,
-                    cardColor: ChunkyColors.primaryFixedDim.withOpacity(0.15),
-                    borderColor: ChunkyColors.primary,
-                  ),
-                  SizedBox(width: 12.0),
-                  _buildQuickStatCard(
-                    title: 'Badges Unlocked',
-                    value: '$unlockedBadgesCount',
-                    icon: Icons.emoji_events,
-                    cardColor: ChunkyColors.surfaceContainerLow,
-                    borderColor: ChunkyColors.primary,
+                  Icon(Icons.person_search, color: ChunkyColors.primary, size: 24),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Search for Friends',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: ChunkyColors.primary,
+                    ),
                   ),
                 ],
               ),
-            ),
-            SizedBox(height: 24.0),
-
-            // Leaderboard Title
-            Text(
-              'Weekly Leaderboard',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.w800,
-                fontSize: 20.0,
-                color: ChunkyColors.onSurface,
+            )
+          else ...[
+            // Search box
+            Container(
+              decoration: BoxDecoration(
+                color: ChunkyColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: ChunkyColors.primary.withOpacity(0.5), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: ChunkyColors.primary.withOpacity(0.2),
+                    offset: const Offset(0, 4),
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: TextStyle(fontFamily: 'BeVietnamPro', fontSize: 16, color: ChunkyColors.onSurface),
+                onChanged: _searchUsers,
+                decoration: InputDecoration(
+                  hintText: 'Search by display name...',
+                  hintStyle: TextStyle(fontFamily: 'BeVietnamPro', color: ChunkyColors.outline),
+                  prefixIcon: Icon(Icons.search, color: ChunkyColors.primary),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.close, color: ChunkyColors.outline),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _showSearch = false;
+                        _searchResults = [];
+                      });
+                    },
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                ),
               ),
             ),
-            SizedBox(height: 12.0),
+            const SizedBox(height: 16),
+
+            // Search results
+            if (_isSearching)
+              const Center(child: CircularProgressIndicator())
+            else if (_searchController.text.isNotEmpty && _searchResults.isEmpty)
+              ChunkyCard(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Icon(Icons.search_off, size: 48, color: ChunkyColors.outline),
+                        const SizedBox(height: 8),
+                        Text(
+                          'No users found for "${_searchController.text}"',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontFamily: 'BeVietnamPro', color: ChunkyColors.outline),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _searchResults.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final user = _searchResults[index];
+                  final uid = user['uid'] as String;
+                  final alreadyFriend = widget.state.friends.any((f) => f.id == uid);
+                  return ChunkyCard(
+                    onTap: () => _openUserProfile(user),
+                    child: Row(
+                      children: [
+                        _buildAvatar(user['photoUrl'], size: 46, name: user['displayName']),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user['displayName'],
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: ChunkyColors.onSurface,
+                                ),
+                              ),
+                              Text(
+                                'Lv.${user['level']}  •  ${user['xp']} XP  •  🔥 ${user['streak']} days',
+                                style: TextStyle(
+                                  fontFamily: 'BeVietnamPro',
+                                  fontSize: 12,
+                                  color: ChunkyColors.outline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (alreadyFriend)
+                          Icon(Icons.check_circle, color: ChunkyColors.primary, size: 28)
+                        else
+                          IconButton(
+                            icon: Icon(Icons.person_add, color: ChunkyColors.primary),
+                            onPressed: () {
+                              widget.state.addFriend(Friend(
+                                id: uid,
+                                name: user['displayName'] ?? 'Adventurer',
+                                avatarUrl: user['photoUrl'] ?? '',
+                                xp: user['xp'] ?? 0,
+                                streak: user['streak'] ?? 0,
+                              ));
+                              setState(() {});
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('${user['displayName']} added!'),
+                                  backgroundColor: ChunkyColors.primary,
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+          ],
+
+          const SizedBox(height: 24),
+
+          // ── Leaderboard ───────────────────────────────────────────
+          if (friends.isNotEmpty) ...[
+            Text(
+              'LEADERBOARD',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                letterSpacing: 1.5,
+                color: ChunkyColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
             ChunkyCard(
               backgroundColor: ChunkyColors.surfaceContainerLow,
               borderColor: ChunkyColors.outlineVariant,
               shadowColor: ChunkyColors.outlineVariant,
-              padding: const EdgeInsets.all(12.0),
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: leaderboard.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12.0),
-                itemBuilder: (context, index) {
-                  final entry = leaderboard[index];
-                  return _buildLeaderboardRow(
-                    rank: index + 1,
-                    name: entry.name,
-                    points: '${entry.points} pts',
-                    streak: entry.streak,
-                    avatarUrl: entry.avatarUrl,
-                    rankColor: index == 0 
-                        ? const Color(0xFFFFD700) 
-                        : (index == 1 ? const Color(0xFFC0C0C0) : (index == 2 ? const Color(0xFFCD7F32) : ChunkyColors.outline)),
-                    isCurrentUser: entry.isCurrentUser,
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: 24.0),
-
-            // Friends Activities
-            Text(
-              'Recent Achievements',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.w800,
-                fontSize: 20.0,
-                color: ChunkyColors.onSurface,
-              ),
-            ),
-            SizedBox(height: 12.0),
-
-            if (friends.isEmpty)
-              ChunkyCard(
-                child: const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24.0),
-                    child: Text(
-                      'Search and add friends to see their achievements here!',
-                      style: TextStyle(fontFamily: 'BeVietnamPro', color: Colors.grey),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              )
-            else
-              Builder(builder: (context) {
-                // Find friends with achievements/streaks
-                final achievementFriends = friends.where((f) => f.badgeEarned != null).toList();
-                final streakFriends = friends.where((f) => f.streak >= 30).toList();
-
-                if (achievementFriends.isEmpty && streakFriends.isEmpty) {
-                  // Fall back to showing latest actions of any friends
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: friends.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 16.0),
-                    itemBuilder: (context, index) {
-                      final f = friends[index];
-                      return _buildActivityCard(
-                        friend: f,
-                        badgeTitle: f.recentActivity,
-                        badgeCategory: 'Activity',
-                        badgeIcon: Icons.check_circle_outline,
-                        badgeColor: ChunkyColors.primary,
-                        isStreakMilestone: false,
-                      );
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: () {
+                  // Build leaderboard: me + friends sorted by XP
+                  final entries = <Map<String, dynamic>>[
+                    {
+                      'uid': currentUser?.uid ?? '',
+                      'name': (currentUser?.displayName?.isNotEmpty == true)
+                          ? currentUser!.displayName!
+                          : 'You',
+                      'photoUrl': currentUser?.photoURL ?? '',
+                      'xp': myXp,
+                      'streak': myStreak,
+                      'isMe': true,
                     },
-                  );
-                }
+                    ...friends.map((f) => {
+                      'uid': f.id,
+                      'name': f.name,
+                      'photoUrl': f.avatarUrl,
+                      'xp': f.xp,
+                      'streak': f.streak,
+                      'isMe': false,
+                    }),
+                  ]..sort((a, b) => (b['xp'] as int).compareTo(a['xp'] as int));
 
-                // Combine them
-                final List<Widget> items = [];
-                for (var f in achievementFriends) {
-                  items.add(_buildActivityCard(
-                    friend: f,
-                    badgeTitle: f.badgeEarned ?? 'Achievement',
-                    badgeCategory: f.badgeCategory ?? 'Badge',
-                    badgeIcon: Icons.wb_sunny,
-                    badgeColor: ChunkyColors.primary,
-                  ));
-                }
-                for (var f in streakFriends) {
-                  items.add(_buildActivityCard(
-                    friend: f,
-                    badgeTitle: '${f.streak} Day Streak!',
-                    badgeCategory: 'Milestone',
-                    badgeIcon: Icons.local_fire_department,
-                    badgeColor: ChunkyColors.primary,
-                    isStreakMilestone: true,
-                  ));
-                }
+                  return entries.asMap().entries.map((e) {
+                    final rank = e.key + 1;
+                    final entry = e.value;
+                    final isMe = entry['isMe'] as bool;
+                    final rankColors = [const Color(0xFFFFD700), const Color(0xFFC0C0C0), const Color(0xFFCD7F32)];
+                    final rankColor = rank <= 3 ? rankColors[rank - 1] : ChunkyColors.outline;
 
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 16.0),
-                  itemBuilder: (context, index) => items[index],
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: GestureDetector(
+                        onTap: isMe ? null : () => _openUserProfile(entry),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isMe ? ChunkyColors.primary.withOpacity(0.1) : ChunkyColors.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isMe ? ChunkyColors.primary : ChunkyColors.outlineVariant,
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 30, height: 30,
+                                decoration: BoxDecoration(color: rankColor, shape: BoxShape.circle),
+                                child: Center(
+                                  child: Text(
+                                    '$rank',
+                                    style: TextStyle(
+                                      fontFamily: 'BeVietnamPro',
+                                      fontWeight: FontWeight.bold,
+                                      color: isMe ? ChunkyColors.background : Colors.white,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              _buildAvatar(entry['photoUrl'] as String?, size: 38, name: entry['name'] as String?),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isMe ? 'You' : (entry['name'] as String),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: isMe ? ChunkyColors.primary : ChunkyColors.onSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${entry['xp']} XP',
+                                      style: TextStyle(
+                                        fontFamily: 'BeVietnamPro',
+                                        fontSize: 12,
+                                        color: ChunkyColors.outline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Icon(Icons.local_fire_department, color: ChunkyColors.primary, size: 18),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${entry['streak']}',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: ChunkyColors.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList();
+                }(),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Friends list
+            Text(
+              'MY FRIENDS',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                letterSpacing: 1.5,
+                color: ChunkyColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: friends.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final f = friends[index];
+                return ChunkyCard(
+                  onTap: () => _openUserProfile({
+                    'uid': f.id,
+                    'displayName': f.name,
+                    'photoUrl': f.avatarUrl,
+                    'xp': f.xp,
+                    'level': 1,
+                    'streak': f.streak,
+                  }),
+                  child: Row(
+                    children: [
+                      _buildAvatar(f.avatarUrl.isNotEmpty ? f.avatarUrl : null, size: 46, name: f.name),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              f.name,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: ChunkyColors.onSurface,
+                              ),
+                            ),
+                            Text(
+                              '${f.xp} XP  •  🔥 ${f.streak} day streak',
+                              style: TextStyle(
+                                fontFamily: 'BeVietnamPro',
+                                fontSize: 12,
+                                color: ChunkyColors.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.person_remove_outlined, color: ChunkyColors.outline),
+                        onPressed: () {
+                          widget.state.removeFriend(f.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${f.name} removed.'),
+                              backgroundColor: ChunkyColors.errorRed,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 );
-              }),
-            SizedBox(height: 32.0),
+              },
+            ),
+          ] else if (!_showSearch) ...[
+            // Empty state
+            ChunkyCard(
+              borderColor: ChunkyColors.outlineVariant,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: ChunkyColors.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.group_outlined, size: 40, color: ChunkyColors.primary),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No friends yet',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: ChunkyColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Search for adventurers and add\nthem to your crew!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'BeVietnamPro',
+                        fontSize: 14,
+                        color: ChunkyColors.outline,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () => setState(() => _showSearch = true),
+                      icon: const Icon(Icons.person_search),
+                      label: const Text('Find Friends'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ChunkyColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
+
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _buildQuickStatCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color cardColor,
-    required Color borderColor,
-  }) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return ChunkyCard(
-      backgroundColor: cardColor,
-      borderColor: borderColor,
-      shadowColor: borderColor,
+      backgroundColor: color.withOpacity(0.08),
+      borderColor: color.withOpacity(0.4),
+      shadowColor: color.withOpacity(0.2),
       shadowHeight: 4,
       child: SizedBox(
-        width: 140.0,
+        width: 130,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: borderColor, size: 24.0),
-            SizedBox(height: 8.0),
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
             Text(
               title,
               style: TextStyle(
                 fontFamily: 'BeVietnamPro',
                 fontWeight: FontWeight.bold,
-                fontSize: 13.0,
-                color: borderColor,
+                fontSize: 13,
+                color: color,
               ),
             ),
-            SizedBox(height: 4.0),
+            const SizedBox(height: 4),
             Text(
               value,
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.w800,
-                fontSize: 22.0,
+                fontSize: 22,
                 color: ChunkyColors.onSurface,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLeaderboardRow({
-    required int rank,
-    required String name,
-    required String points,
-    required int streak,
-    required String avatarUrl,
-    required Color rankColor,
-    bool isCurrentUser = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: isCurrentUser ? ChunkyColors.primaryContainer : ChunkyColors.onSurface,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(
-          color: isCurrentUser ? ChunkyColors.primary : ChunkyColors.surfaceContainerHighest,
-          width: 2.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isCurrentUser ? ChunkyColors.primary.withOpacity(0.3) : ChunkyColors.surfaceContainerHighest,
-            offset: const Offset(0, 4),
-            blurRadius: 0,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32.0,
-            height: 32.0,
-            decoration: BoxDecoration(
-              color: rankColor,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$rank',
-                style: TextStyle(
-                  fontFamily: 'BeVietnamPro',
-                  fontWeight: FontWeight.bold,
-                  color: isCurrentUser ? ChunkyColors.onSurface : ChunkyColors.surface,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 12.0),
-          Container(
-            width: 40.0,
-            height: 40.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: ChunkyColors.surfaceContainerHighest, width: 2.0),
-              image: DecorationImage(
-                image: NetworkImage(avatarUrl),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          SizedBox(width: 12.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontFamily: 'BeVietnamPro',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.0,
-                    color: isCurrentUser ? ChunkyColors.onSurface : ChunkyColors.surface,
-                  ),
-                ),
-                Text(
-                  points,
-                  style: TextStyle(
-                    fontFamily: 'BeVietnamPro',
-                    color: isCurrentUser ? ChunkyColors.onSurfaceVariant : ChunkyColors.surfaceContainerHigh,
-                    fontSize: 12.0,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Row(
-            children: [
-              Icon(Icons.local_fire_department, color: ChunkyColors.primary, size: 20.0),
-              SizedBox(width: 4.0),
-              Text(
-                '$streak',
-                style: TextStyle(
-                  fontFamily: 'BeVietnamPro',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14.0,
-                  color: isCurrentUser ? ChunkyColors.onSurface : ChunkyColors.surface,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivityCard({
-    required Friend friend,
-    required String badgeTitle,
-    required String badgeCategory,
-    required IconData badgeIcon,
-    required Color badgeColor,
-    bool isStreakMilestone = false,
-  }) {
-    final hasReacted = _reactedFriends.contains(friend.id);
-
-    return ChunkyCard(
-      borderColor: ChunkyColors.surfaceContainerHighest,
-      shadowColor: ChunkyColors.surfaceContainerHighest,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48.0,
-                height: 48.0,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: badgeColor, width: 2.0),
-                  image: DecorationImage(
-                    image: NetworkImage(friend.avatarUrl),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              SizedBox(width: 12.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          fontFamily: 'BeVietnamPro',
-                          fontSize: 14.0,
-                          color: ChunkyColors.onSurface,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: friend.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          TextSpan(
-                            text: isStreakMilestone ? ' hit a ' : ' ',
-                          ),
-                          TextSpan(
-                            text: isStreakMilestone ? badgeTitle : friend.recentActivity,
-                            style: TextStyle(fontWeight: FontWeight.bold, color: badgeColor),
-                          ),
-                          const TextSpan(text: '!'),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      friend.recentActivityTime,
-                      style: TextStyle(
-                        fontFamily: 'BeVietnamPro',
-                        color: ChunkyColors.outline,
-                        fontSize: 12.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16.0),
-
-          // Detail box
-          if (!isStreakMilestone && friend.badgeEarned != null)
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                color: ChunkyColors.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(16.0),
-                border: Border.all(color: ChunkyColors.surfaceContainerHighest),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40.0,
-                    height: 40.0,
-                    decoration: BoxDecoration(
-                      color: badgeColor.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Icon(badgeIcon, color: badgeColor),
-                  ),
-                  SizedBox(width: 12.0),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        badgeCategory.toUpperCase(),
-                        style: TextStyle(
-                          fontFamily: 'BeVietnamPro',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10.0,
-                          color: badgeColor,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                      Text(
-                        badgeTitle,
-                        style: const TextStyle(
-                          fontFamily: 'BeVietnamPro',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-          SizedBox(height: 12.0),
-
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _triggerCheerEffect(friend.id),
-                  child: Container(
-                    height: 44.0,
-                    decoration: BoxDecoration(
-                      color: hasReacted ? ChunkyColors.primaryFixedDim.withOpacity(0.3) : ChunkyColors.onSurface,
-                      borderRadius: BorderRadius.circular(12.0),
-                      border: Border.all(
-                        color: hasReacted ? ChunkyColors.primary : ChunkyColors.surfaceContainerHighest,
-                        width: 2.0,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: hasReacted ? Colors.transparent : ChunkyColors.surfaceContainerHighest,
-                          offset: Offset(0, hasReacted ? 0 : 4),
-                          blurRadius: 0,
-                          spreadRadius: 0,
-                        ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              hasReacted ? Icons.check_circle : Icons.local_fire_department,
-                              color: ChunkyColors.primary,
-                              size: 20.0,
-                            ),
-                            SizedBox(width: 8.0),
-                            Text(
-                              hasReacted ? 'Sent!' : 'Cheer',
-                              style: TextStyle(
-                                fontFamily: 'BeVietnamPro',
-                                fontWeight: FontWeight.bold,
-                                color: hasReacted ? ChunkyColors.primary : ChunkyColors.surface,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (hasReacted)
-                          const Positioned(
-                            top: -10,
-                            child: Text(
-                              '🎉',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 12.0),
-              Container(
-                width: 48.0,
-                height: 44.0,
-                decoration: BoxDecoration(
-                  color: ChunkyColors.onSurface,
-                  borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(
-                    color: ChunkyColors.surfaceContainerHighest,
-                    width: 2.0,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: ChunkyColors.surfaceContainerHighest,
-                      offset: const Offset(0, 4),
-                      blurRadius: 0,
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    isStreakMilestone ? '🔥' : '👏',
-                    style: const TextStyle(fontSize: 20.0),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

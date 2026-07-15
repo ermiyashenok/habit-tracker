@@ -39,7 +39,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Hall of Fame',
+                    'My Badges',
                     style: GoogleFonts.plusJakartaSans(
                       fontWeight: FontWeight.w800,
                       fontSize: 24.0,
@@ -65,108 +65,24 @@ class _BadgesScreenState extends State<BadgesScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 20.0),
-
-              // Milestone Progress Card
-              ChunkyCard(
-                borderColor: ChunkyColors.surfaceContainerHighest,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: ChunkyColors.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: Icon(Icons.military_tech, color: ChunkyColors.primary),
-                        ),
-                        SizedBox(width: 12.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'NEXT MILESTONE',
-                                style: TextStyle(
-                                  fontFamily: 'BeVietnamPro',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10.0,
-                                  color: ChunkyColors.outline,
-                                  letterSpacing: 1.0,
-                                ),
-                              ),
-                              Text(
-                                "Unlock 'Consistency King'",
-                                style: TextStyle(
-                                  fontFamily: 'BeVietnamPro',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15.0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16.0),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(6.0),
-                            child: LinearProgressIndicator(
-                              value: 0.80,
-                              minHeight: 12.0,
-                              backgroundColor: ChunkyColors.surfaceContainerLow,
-                              color: ChunkyColors.onSurface,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 12.0),
-                        Text(
-                          '80%',
-                          style: TextStyle(
-                            fontFamily: 'BeVietnamPro',
-                            fontWeight: FontWeight.bold,
-                            color: ChunkyColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8.0),
-                    Text(
-                      'Complete 3 more daily tasks to unlock.',
-                      style: TextStyle(
-                        fontFamily: 'BeVietnamPro',
-                        fontSize: 12.0,
-                        color: ChunkyColors.outline,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               SizedBox(height: 24.0),
 
+
+
               // Badges Grid
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: achievements.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16.0,
-                  mainAxisSpacing: 16.0,
-                  childAspectRatio: 0.9,
-                ),
-                itemBuilder: (context, index) {
-                  final ach = achievements[index];
-                  return _buildBadgeCell(ach);
-                },
+              Wrap(
+                spacing: 16.0,
+                runSpacing: 16.0,
+                alignment: WrapAlignment.start,
+                children: achievements.map((ach) {
+                  return SizedBox(
+                    width: (MediaQuery.of(context).size.width - 64) / 2, // Approximate width for 2 items per row with padding
+                    height: 180, // Fixed height to prevent stretching
+                    child: _buildBadgeCell(ach),
+                  );
+                }).toList(),
               ),
-              SizedBox(height: 32.0),
+              SizedBox(height: 120.0), // Padding for bottom nav bar
             ],
           ),
         ),
